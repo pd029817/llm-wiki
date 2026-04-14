@@ -30,14 +30,14 @@ export default function WikiBrowser() {
       </div>
 
       {loading ? (
-        <p className="text-sm text-gray-400">로딩 중...</p>
+        <p className="text-sm text-gray-500">로딩 중...</p>
       ) : pages.length === 0 ? (
-        <p className="text-sm text-gray-400">위키 페이지가 없습니다. 소스를 업로드하여 시작하세요.</p>
+        <p className="text-sm text-gray-500">위키 페이지가 없습니다. 소스를 업로드하여 시작하세요.</p>
       ) : (
         <div>
           {categories.map((cat) => (
             <div key={cat} className="mb-6">
-              <h2 className="text-sm font-semibold text-gray-500 uppercase mb-2">{cat}</h2>
+              <h2 className="text-sm font-semibold text-gray-600 uppercase mb-2">{cat}</h2>
               <div className="bg-white rounded-lg shadow-sm divide-y">
                 {pages.filter((p) => p.category === cat).map((page) => (
                   <Link
@@ -46,7 +46,7 @@ export default function WikiBrowser() {
                     className="block px-4 py-3 hover:bg-gray-50"
                   >
                     <span className="text-sm font-medium">{page.title}</span>
-                    <span className="text-xs text-gray-400 ml-2">v{page.version}</span>
+                    <span className="text-xs text-gray-500 ml-2">v{page.version}</span>
                   </Link>
                 ))}
               </div>
@@ -54,7 +54,7 @@ export default function WikiBrowser() {
           ))}
           {pages.filter((p) => !p.category).length > 0 && (
             <div className="mb-6">
-              <h2 className="text-sm font-semibold text-gray-500 uppercase mb-2">미분류</h2>
+              <h2 className="text-sm font-semibold text-gray-600 uppercase mb-2">미분류</h2>
               <div className="bg-white rounded-lg shadow-sm divide-y">
                 {pages.filter((p) => !p.category).map((page) => (
                   <Link
@@ -63,7 +63,7 @@ export default function WikiBrowser() {
                     className="block px-4 py-3 hover:bg-gray-50"
                   >
                     <span className="text-sm font-medium">{page.title}</span>
-                    <span className="text-xs text-gray-400 ml-2">v{page.version}</span>
+                    <span className="text-xs text-gray-500 ml-2">v{page.version}</span>
                   </Link>
                 ))}
               </div>

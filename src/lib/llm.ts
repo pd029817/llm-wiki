@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { SchemaConfig, WikiPage } from "./types";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY!);
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
 
 function buildSystemPrompt(config: SchemaConfig, operation: "ingest" | "query" | "lint" | "chat"): string {
   const baseRules = `위키 규칙:\n- 카테고리: ${config.categories.join(", ")}\n- 페이지 템플릿:\n${config.rules.page_template}`;

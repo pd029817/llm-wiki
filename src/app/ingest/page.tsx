@@ -65,7 +65,7 @@ export default function IngestPage() {
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full border rounded px-3 py-2 text-sm"
+            className="w-full border rounded px-3 py-2 text-sm text-gray-900"
             placeholder="문서 제목"
           />
         </div>
@@ -75,7 +75,7 @@ export default function IngestPage() {
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="w-full border rounded px-3 py-2 text-sm h-48 font-mono"
+            className="w-full border rounded px-3 py-2 text-sm text-gray-900 h-48 font-mono"
             placeholder="문서 내용을 입력하세요..."
           />
         </div>

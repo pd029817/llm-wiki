@@ -54,7 +54,7 @@ export default function SettingsPage() {
     }
   };
 
-  if (loading) return <p className="text-sm text-gray-400">로딩 중...</p>;
+  if (loading) return <p className="text-sm text-gray-500">로딩 중...</p>;
 
   return (
     <div>
@@ -91,7 +91,7 @@ export default function SettingsPage() {
               value={newCategory}
               onChange={(e) => setNewCategory(e.target.value)}
               placeholder="새 카테고리"
-              className="border rounded px-3 py-1 text-sm"
+              className="border rounded px-3 py-1 text-sm text-gray-900"
               onKeyDown={(e) => { if (e.key === "Enter") addCategory(); }}
             />
             <button onClick={addCategory} className="text-sm text-blue-600 hover:underline">추가</button>
@@ -103,7 +103,7 @@ export default function SettingsPage() {
           <textarea
             value={pageTemplate}
             onChange={(e) => setPageTemplate(e.target.value)}
-            className="w-full border rounded px-3 py-2 text-sm h-32 font-mono"
+            className="w-full border rounded px-3 py-2 text-sm text-gray-900 h-32 font-mono"
           />
         </div>
 
@@ -113,7 +113,7 @@ export default function SettingsPage() {
             {Object.entries(terminology).map(([key, value]) => (
               <div key={key} className="flex items-center gap-2 text-sm">
                 <span className="font-mono bg-gray-50 px-2 py-0.5 rounded">{key}</span>
-                <span className="text-gray-400">=</span>
+                <span className="text-gray-500">=</span>
                 <span>{value}</span>
                 <button
                   onClick={() => {
@@ -134,14 +134,14 @@ export default function SettingsPage() {
               value={newTermKey}
               onChange={(e) => setNewTermKey(e.target.value)}
               placeholder="용어"
-              className="border rounded px-3 py-1 text-sm w-32"
+              className="border rounded px-3 py-1 text-sm text-gray-900 w-32"
             />
             <input
               type="text"
               value={newTermValue}
               onChange={(e) => setNewTermValue(e.target.value)}
               placeholder="통일 표기"
-              className="border rounded px-3 py-1 text-sm w-48"
+              className="border rounded px-3 py-1 text-sm text-gray-900 w-48"
             />
             <button onClick={addTerminology} className="text-sm text-blue-600 hover:underline">추가</button>
           </div>

@@ -12,7 +12,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ko">
       <body className="flex">
         <Nav />
-        <main className="flex-1 p-6 bg-gray-50 min-h-screen">
+        <main className="flex-1 p-6 bg-gray-50 min-h-screen text-gray-900">
           {children}
         </main>
       </body>

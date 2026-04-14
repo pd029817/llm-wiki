@@ -46,7 +46,7 @@ export default function LintPage() {
       </div>
 
       {hasRun && (
-        <div className="mb-4 text-sm text-gray-500">
+        <div className="mb-4 text-sm text-gray-600">
           {totalPages}개 페이지 점검 완료 | {issues.length}건 발견
         </div>
       )}
@@ -66,7 +66,7 @@ export default function LintPage() {
                   </a>
                 </div>
                 <p className="text-sm text-gray-700">{issue.description}</p>
-                <p className="text-sm text-gray-500 mt-1">제안: {issue.suggestion}</p>
+                <p className="text-sm text-gray-600 mt-1">제안: {issue.suggestion}</p>
               </div>
             );
           })}
@@ -75,7 +75,7 @@ export default function LintPage() {
 
       {hasRun && issues.length === 0 && (
         <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-          <p className="text-sm text-gray-400">문제가 발견되지 않았습니다.</p>
+          <p className="text-sm text-gray-500">문제가 발견되지 않았습니다.</p>
         </div>
       )}
     </div>

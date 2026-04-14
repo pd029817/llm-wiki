@@ -21,7 +21,7 @@ export function FileUpload({ onFileSelect }: { onFileSelect: (file: File) => voi
         dragOver ? "border-blue-500 bg-blue-50" : "border-gray-300"
       }`}
     >
-      <p className="text-sm text-gray-500 mb-2">파일을 드래그하거나 클릭하여 업로드</p>
+      <p className="text-sm text-gray-600 mb-2">파일을 드래그하거나 클릭하여 업로드</p>
       <input
         type="file"
         onChange={(e) => { if (e.target.files?.[0]) onFileSelect(e.target.files[0]); }}

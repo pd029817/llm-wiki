@@ -45,7 +45,7 @@ export default function ChatPage() {
 
       <div className="flex-1 overflow-y-auto bg-white rounded-lg shadow-sm p-4 mb-4">
         {messages.length === 0 && (
-          <p className="text-sm text-gray-400 text-center mt-8">
+          <p className="text-sm text-gray-500 text-center mt-8">
             위키 지식 기반으로 대화하세요.
           </p>
         )}
@@ -54,7 +54,7 @@ export default function ChatPage() {
         ))}
         {loading && (
           <div className="flex justify-start mb-4">
-            <div className="bg-gray-100 rounded-lg px-4 py-3 text-sm text-gray-400">
+            <div className="bg-gray-100 rounded-lg px-4 py-3 text-sm text-gray-500">
               답변 생성 중...
             </div>
           </div>
@@ -69,7 +69,7 @@ export default function ChatPage() {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") handleSend(); }}
           placeholder="메시지를 입력하세요..."
-          className="flex-1 border rounded px-3 py-2 text-sm"
+          className="flex-1 border rounded px-3 py-2 text-sm text-gray-900"
           disabled={loading}
         />
         <button

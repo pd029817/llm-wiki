@@ -36,7 +36,7 @@ export default function QueryPage() {
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           placeholder="위키 지식에 기반하여 질문하세요..."
-          className="w-full border rounded px-3 py-2 text-sm h-24"
+          className="w-full border rounded px-3 py-2 text-sm text-gray-900 h-24"
           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleQuery(); } }}
         />
         <button
@@ -50,14 +50,14 @@ export default function QueryPage() {
 
       {answer && (
         <div className="bg-white rounded-lg shadow-sm p-6 mb-4">
-          <h2 className="text-sm font-semibold text-gray-500 mb-3">답변</h2>
+          <h2 className="text-sm font-semibold text-gray-600 mb-3">답변</h2>
           <MarkdownViewer content={answer} />
         </div>
       )}
 
       {sources.length > 0 && (
         <div>
-          <h2 className="text-sm font-semibold text-gray-500 mb-2">참고한 위키 페이지</h2>
+          <h2 className="text-sm font-semibold text-gray-600 mb-2">참고한 위키 페이지</h2>
           <div className="flex flex-wrap gap-2">
             {sources.map((s) => (
               <a
