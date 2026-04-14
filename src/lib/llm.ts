@@ -1,8 +1,8 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 import { SchemaConfig, WikiPage } from "./types";
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY!);
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY! });
+const MODEL = "llama-3.3-70b-versatile";
 
 function buildSystemPrompt(config: SchemaConfig, operation: "ingest" | "query" | "lint" | "chat"): string {
   const baseRules = `위키 규칙:\n- 카테고리: ${config.categories.join(", ")}\n- 페이지 템플릿:\n${config.rules.page_template}`;
@@ -27,6 +27,17 @@ function formatWikiContext(pages: WikiPage[]): string {
     .join("\n\n");
 }
 
+async function complete(system: string, user: string): Promise<string> {
+  const res = await groq.chat.completions.create({
+    model: MODEL,
+    messages: [
+      { role: "system", content: system },
+      { role: "user", content: user },
+    ],
+  });
+  return res.choices[0]?.message?.content || "";
+}
+
 export async function runIngest(
   documentContent: string,
   existingPages: WikiPage[],
@@ -37,12 +48,7 @@ export async function runIngest(
     ? `\n\n기존 위키 페이지 목록:\n${existingPages.map((p) => `- ${p.title} (${p.slug})`).join("\n")}`
     : "\n\n기존 위키 페이지가 없습니다.";
 
-  const result = await model.generateContent({
-    systemInstruction: system,
-    contents: [{ role: "user", parts: [{ text: `원본 문서:\n${documentContent}${context}` }] }],
-  });
-
-  const text = result.response.text();
+  const text = await complete(system, `원본 문서:\n${documentContent}${context}`);
   const jsonMatch = text.match(/\[[\s\S]*\]/);
   if (!jsonMatch) throw new Error("LLM 응답에서 JSON을 파싱할 수 없습니다.");
   return JSON.parse(jsonMatch[0]);
@@ -55,13 +61,7 @@ export async function runQuery(
 ): Promise<string> {
   const system = buildSystemPrompt(config, "query");
   const context = formatWikiContext(relevantPages);
-
-  const result = await model.generateContent({
-    systemInstruction: system,
-    contents: [{ role: "user", parts: [{ text: `위키 페이지:\n${context}\n\n질문: ${question}` }] }],
-  });
-
-  return result.response.text();
+  return complete(system, `위키 페이지:\n${context}\n\n질문: ${question}`);
 }
 
 export async function runLint(
@@ -70,13 +70,7 @@ export async function runLint(
 ): Promise<{ page_slug: string; issue_type: string; description: string; suggestion: string }[]> {
   const system = buildSystemPrompt(config, "lint");
   const context = formatWikiContext(pages);
-
-  const result = await model.generateContent({
-    systemInstruction: system,
-    contents: [{ role: "user", parts: [{ text: `검토 대상 위키 페이지:\n${context}` }] }],
-  });
-
-  const text = result.response.text();
+  const text = await complete(system, `검토 대상 위키 페이지:\n${context}`);
   const jsonMatch = text.match(/\[[\s\S]*\]/);
   if (!jsonMatch) return [];
   return JSON.parse(jsonMatch[0]);
@@ -91,19 +85,14 @@ export async function runChat(
   const context = relevantPages.length > 0
     ? `참고할 위키 페이지:\n${formatWikiContext(relevantPages)}`
     : "";
-
   const systemWithContext = context ? `${system}\n\n${context}` : system;
 
-  // Gemini uses "model" role instead of "assistant"
-  const geminiMessages = messages.map((m) => ({
-    role: m.role === "assistant" ? "model" as const : "user" as const,
-    parts: [{ text: m.content }],
-  }));
-
-  const result = await model.generateContent({
-    systemInstruction: systemWithContext,
-    contents: geminiMessages,
+  const res = await groq.chat.completions.create({
+    model: MODEL,
+    messages: [
+      { role: "system", content: systemWithContext },
+      ...messages.map((m) => ({ role: m.role, content: m.content })),
+    ],
   });
-
-  return result.response.text();
+  return res.choices[0]?.message?.content || "";
 }
