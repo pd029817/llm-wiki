@@ -15,7 +15,7 @@ function buildSystemPrompt(config: SchemaConfig, operation: "ingest" | "query" |
     ingest: `당신은 위키 관리자입니다. 다음 원본 문서를 읽고, 기존 위키 페이지 목록을 참고하여, 신규 페이지 생성 또는 기존 페이지 업데이트를 마크다운으로 출력하세요. 관련 페이지 간 크로스레퍼런스를 [[페이지슬러그]] 형식으로 반드시 포함하세요.\n\n응답은 반드시 다음 JSON 형식으로:\n[{"action": "create"|"update", "slug": "페이지-슬러그", "title": "페이지 제목", "category": "카테고리", "content": "마크다운 내용"}]`,
     query: `다음 위키 페이지들을 참고하여 질문에 답하세요. 반드시 출처 페이지를 [페이지제목](/wiki/슬러그) 형식으로 인용하세요. 위키에 없는 내용은 추측하지 마세요.`,
     lint: `다음 위키 페이지들을 검토하여 문제를 찾아 리포트하세요.\n검토 항목: 모순되는 내용, 오래된 정보, 고아 페이지(다른 페이지에서 링크되지 않음), 누락된 크로스레퍼런스.\n\n응답은 반드시 다음 JSON 형식으로:\n[{"page_slug": "슬러그", "issue_type": "contradiction"|"stale"|"orphan"|"missing_link", "description": "설명", "suggestion": "수정 제안"}]`,
-    chat: `당신은 회사 지식 관리 위키 기반 어시스턴트입니다. 제공된 위키 페이지를 기반으로 질문에 답하세요. 출처를 인용하고, 위키에 없는 내용은 명확히 밝히세요.`,
+    chat: `당신은 회사 지식 관리 위키 기반 어시스턴트입니다.\n\n엄격한 규칙:\n1. 오직 아래 "참고할 위키 페이지"에 포함된 내용만을 근거로 답하세요.\n2. 위키에 없는 정보는 추측·일반지식·외부지식으로 절대 보충하지 마세요.\n3. 위키에 관련 정보가 없으면 반드시 "위키에 해당 정보가 없습니다."라고만 답하세요.\n4. 답변시 반드시 출처 페이지를 [페이지제목](/wiki/슬러그) 형식으로 인용하세요.\n5. 위키 내용을 그대로 혹은 최소 편집으로만 제시하세요 — 스스로 재구성하거나 창작하지 마세요.`,
   };
 
   return `${prompts[operation]}\n\n${baseRules}${termSection}`;
@@ -84,8 +84,8 @@ export async function runChat(
   const system = buildSystemPrompt(config, "chat");
   const context = relevantPages.length > 0
     ? `참고할 위키 페이지:\n${formatWikiContext(relevantPages)}`
-    : "";
-  const systemWithContext = context ? `${system}\n\n${context}` : system;
+    : "참고할 위키 페이지: (검색 결과 없음 — 반드시 '위키에 해당 정보가 없습니다.'라고만 답하세요)";
+  const systemWithContext = `${system}\n\n${context}`;
 
   const res = await groq.chat.completions.create({
     model: MODEL,

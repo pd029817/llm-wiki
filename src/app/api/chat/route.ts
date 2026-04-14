@@ -12,12 +12,22 @@ export async function POST(request: NextRequest) {
 
   const lastMessage = messages[messages.length - 1];
 
-  const searchTerms = lastMessage.content.split(/\s+/).join(" & ");
-  const { data: pages } = await supabase
+  const searchTerms = lastMessage.content.split(/\s+/).filter(Boolean).join(" | ");
+  let { data: pages } = await supabase
     .from("wiki_pages")
     .select("*")
     .textSearch("fts", searchTerms, { type: "plain" })
     .limit(5);
+
+  if (!pages || pages.length === 0) {
+    const keyword = lastMessage.content.split(/\s+/).filter(Boolean)[0] || "";
+    const { data: fallback } = await supabase
+      .from("wiki_pages")
+      .select("*")
+      .or(`title.ilike.%${keyword}%,content.ilike.%${keyword}%`)
+      .limit(5);
+    pages = fallback;
+  }
 
   const { data: config } = await supabase
     .from("schema_config")
