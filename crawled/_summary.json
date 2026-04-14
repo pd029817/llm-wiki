@@ -1,0 +1,607 @@
+{
+  "base_url": "https://www.tallcare.co.kr/#/customer",
+  "crawled_at": "2026-04-14T10:23:31.751Z",
+  "total_pages": 100,
+  "pages": [
+    {
+      "url": "https://www.tallcare.co.kr/#/customer",
+      "title": "고객안내문",
+      "content_length": 313,
+      "link_count": 9
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/",
+      "title": "T 올케어플러스",
+      "content_length": 441,
+      "link_count": 58
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/T25PLRA/EG",
+      "title": "고객안내문",
+      "content_length": 13189,
+      "link_count": 3
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/T25PRRA/EG",
+      "title": "고객안내문",
+      "content_length": 11136,
+      "link_count": 3
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/T25SLRA/EG",
+      "title": "고객안내문",
+      "content_length": 17649,
+      "link_count": 3
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/T25SRRA/EG",
+      "title": "고객안내문",
+      "content_length": 15503,
+      "link_count": 3
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/T25GLRA/EG",
+      "title": "고객안내문",
+      "content_length": 7366,
+      "link_count": 3
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/T25GRRA/EG",
+      "title": "고객안내문",
+      "content_length": 5625,
+      "link_count": 3
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/7ABIA/EM",
+      "title": "상품별 고객안내문",
+      "content_length": 5039,
+      "link_count": 6
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/claim/rr",
+      "title": "T 올케어플러스",
+      "content_length": 267,
+      "link_count": 51
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/claim/ls",
+      "title": "T 올케어플러스",
+      "content_length": 248,
+      "link_count": 49
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/claim/sur",
+      "title": "T 올케어플러스",
+      "content_length": 261,
+      "link_count": 49
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/claim/pb",
+      "title": "T 올케어플러스",
+      "content_length": 270,
+      "link_count": 51
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/claim/switch",
+      "title": "T 올케어플러스",
+      "content_length": 228,
+      "link_count": 49
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/intro/smart-search",
+      "title": "질문 3개만 선택하면 끝!",
+      "content_length": 319,
+      "link_count": 43
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/intro/tallcareplus",
+      "title": "T 올케어플러스6",
+      "content_length": 5059,
+      "link_count": 44
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/intro/tallcareplus-switch",
+      "title": "T 올케어플러스6 스위치",
+      "content_length": 5660,
+      "link_count": 44
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/intro/dp-products",
+      "title": "분실파손6",
+      "content_length": 2527,
+      "link_count": 44
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/intro/used-phone-insurance",
+      "title": "중고파손 보험",
+      "content_length": 646,
+      "link_count": 44
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/intro/customer-list",
+      "title": "T 올케어플러스",
+      "content_length": 338,
+      "link_count": 50
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service",
+      "title": "T 올케어플러스",
+      "content_length": 699,
+      "link_count": 52
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/24-care",
+      "title": "24시간 케어 서비스",
+      "content_length": 884,
+      "link_count": 56
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/security-care?channel=PS_sub_page",
+      "title": "24시간 케어 서비스",
+      "content_length": 1002,
+      "link_count": 56
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/drop-damage-care?channel=PS_sub_page",
+      "title": "24시간 케어 서비스",
+      "content_length": 1227,
+      "link_count": 55
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/lost-care",
+      "title": "분실 보상폰 당일 배송",
+      "content_length": 1160,
+      "link_count": 53
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/repair-care",
+      "title": "파손 수리 대행",
+      "content_length": 1441,
+      "link_count": 53
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/battery-care",
+      "title": "배터리 교체",
+      "content_length": 1068,
+      "link_count": 53
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/smart-device-care",
+      "title": "스마트 기기 파손 보상",
+      "content_length": 1143,
+      "link_count": 53
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/premium-care",
+      "title": "프리미엄 임대폰 무료",
+      "content_length": 1120,
+      "link_count": 52
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/scam-care",
+      "title": "통신 생활 케어",
+      "content_length": 888,
+      "link_count": 52
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/reward-mall",
+      "title": "플러스 서비스 제휴 몰",
+      "content_length": 1001,
+      "link_count": 53
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/switch-service",
+      "title": "스위치 서비스",
+      "content_length": 1128,
+      "link_count": 53
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/my-page",
+      "title": "T 올케어플러스",
+      "content_length": 78,
+      "link_count": 37
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/my-page/subscription-info",
+      "title": "T 올케어플러스",
+      "content_length": 78,
+      "link_count": 37
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/my-page/claim-summary",
+      "title": "T 올케어플러스",
+      "content_length": 78,
+      "link_count": 37
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/my-page/claim-history",
+      "title": "T 올케어플러스",
+      "content_length": 78,
+      "link_count": 37
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/help/support-customer",
+      "title": "T 올케어플러스",
+      "content_length": 418,
+      "link_count": 47
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/help/inquiry",
+      "title": "T 올케어플러스",
+      "content_length": 78,
+      "link_count": 37
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/help/user-guide",
+      "title": "T 올케어플러스",
+      "content_length": 95,
+      "link_count": 45
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/help/repair-center",
+      "title": "T 올케어플러스",
+      "content_length": 245,
+      "link_count": 43
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/help/faq",
+      "title": "T 올케어플러스",
+      "content_length": 770,
+      "link_count": 43
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/help/notice",
+      "title": "T 올케어플러스",
+      "content_length": 985,
+      "link_count": 43
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/uel",
+      "title": "T 올케어플러스 비대면 가입",
+      "content_length": 256,
+      "link_count": 1
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/omd?channel=main_carousel",
+      "title": "자급제폰도\n든든하게 보상",
+      "content_length": 1953,
+      "link_count": 2
+    },
+    {
+      "url": "https://www.tallcare.co.kr#",
+      "title": "T 올케어플러스",
+      "content_length": 445,
+      "link_count": 58
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/omd?channel=main_card",
+      "title": "자급제폰도\n든든하게 보상",
+      "content_length": 1953,
+      "link_count": 2
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/customer/switch-policy",
+      "title": "스위치 서비스 이용약관",
+      "content_length": 5408,
+      "link_count": 2
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/customer/privacy/policy",
+      "title": "개인정보처리방침",
+      "content_length": 11077,
+      "link_count": 2
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/insurance/terms/guide",
+      "title": "SKT 보험 약관",
+      "content_length": 341,
+      "link_count": 2
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/help/support-customer?calculator=y",
+      "title": "예상보상금 계산기",
+      "content_length": 411,
+      "link_count": 46
+    },
+    {
+      "url": "https://www.tallcare.co.kr#info1",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr#info2",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr#info3",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr#info4",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/help/user-guide?category=1&contents=rr",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/help/user-guide?category=3&contents=rr",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/help/user-guide?category=2&contents=rr",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/my-page/",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/help/user-guide?category=1&contents=ls",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/help/user-guide?category=3&contents=ls",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/help/user-guide?category=2&contents=ls",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/help/user-guide?category=1&contents=sur",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/help/user-guide?category=3&contents=sur",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/help/user-guide?category=2&contents=sur",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/help/user-guide?category=1&contents=pb",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/help/user-guide?category=3&contents=pb",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/help/user-guide?category=2&contents=pb",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/magazine/details/254628?channel=claim_switch",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/magazine/details/257170?channel=claim_switch",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/24-care?channel=PS_main_page",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/lost-care?channel=PS_main_page",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/repair-care?channel=PS_main_page",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/battery-care?channel=PS_main_page",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/smart-device-care?channel=PS_main_page",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/premium-care?channel=PS_main_page",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/scam-care?channel=PS_main_page",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/reward-mall?channel=PS_main_page",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/switch-service?channel=PS_main_page",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/24-care?channel=PS_sub_page",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/lost-care?channel=PS_sub_page",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/repair-care?channel=PS_sub_page",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/battery-care?channel=PS_sub_page",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/smart-device-care?channel=PS_sub_page",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/premium-care?channel=PS_sub_page",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/scam-care?channel=PS_sub_page",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/reward-mall?channel=PS_sub_page",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/switch-service?channel=PS_sub_page",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/plus-service/security-care",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/claim/ls?channel=PS_sub_page",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/claim/sur?channel=PS_sub_page",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/claim/pb?channel=PS_sub_page",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/claim/rr?channel=PS_sub_page",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/claim/switch?channel=PS_sub_page",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/help/notice/67FE9B10BE1A45D2964BE423FE42D0D3",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/help/notice/15C97014CEA046CD8FA1EF38B3679103",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/help/notice/5E4AB690E5EF40E09B2AB2E5FDF4CF5D",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/magazine/details/242228?channel=customer_support",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/omd/enroll?channel=user-guide",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/omd/enroll?channel=main_carousel",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    },
+    {
+      "url": "https://www.tallcare.co.kr/#/omd/enroll?channel=main_card",
+      "title": "T 올케어플러스",
+      "content_length": 41,
+      "link_count": 0
+    }
+  ]
+}

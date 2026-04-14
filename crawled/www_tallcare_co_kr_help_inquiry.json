@@ -1,0 +1,161 @@
+{
+  "url": "https://www.tallcare.co.kr/#/help/inquiry",
+  "title": "T 올케어플러스",
+  "content": "가입자 인증소중한 개인 정보 보호를 위해 인증을 진행해 주세요.이름생년월일휴대폰번호[필수] 개인정보 수집·이용 동의약관에 동의해 주세요.확인",
+  "links": [
+    {
+      "href": "javascript:void(0)",
+      "text": "채팅 상담"
+    },
+    {
+      "href": "#/",
+      "text": ""
+    },
+    {
+      "href": "#/claim/rr",
+      "text": ""
+    },
+    {
+      "href": "#/claim/rr",
+      "text": "파손 보상 접수"
+    },
+    {
+      "href": "#/claim/ls",
+      "text": "분실 보상 접수"
+    },
+    {
+      "href": "#/claim/sur",
+      "text": "파손 수리 대행 접수"
+    },
+    {
+      "href": "#/claim/pb",
+      "text": "배터리 교체 보상 접수"
+    },
+    {
+      "href": "#/claim/switch",
+      "text": "스위치 접수"
+    },
+    {
+      "href": "#/intro/smart-search",
+      "text": ""
+    },
+    {
+      "href": "#/intro/smart-search",
+      "text": "내게 맞는 상품 찾기"
+    },
+    {
+      "href": "#/intro/tallcareplus",
+      "text": "T 올케어플러스6"
+    },
+    {
+      "href": "#/intro/tallcareplus-switch",
+      "text": "T 올케어플러스6 스위치"
+    },
+    {
+      "href": "#/intro/dp-products",
+      "text": "분실파손6"
+    },
+    {
+      "href": "#/intro/used-phone-insurance",
+      "text": "중고파손 보험"
+    },
+    {
+      "href": "#/intro/customer-list",
+      "text": "고객안내문"
+    },
+    {
+      "href": "#/plus-service",
+      "text": ""
+    },
+    {
+      "href": "#/plus-service/24-care",
+      "text": "24시간 케어 서비스"
+    },
+    {
+      "href": "#/plus-service/security-care?channel=PS_sub_page",
+      "text": "내 정보 안심 케어"
+    },
+    {
+      "href": "#/plus-service/drop-damage-care?channel=PS_sub_page",
+      "text": "낙하 파손 감지 알리미"
+    },
+    {
+      "href": "#/plus-service/lost-care",
+      "text": "분실 보상폰 당일 배송"
+    },
+    {
+      "href": "#/plus-service/repair-care",
+      "text": "파손 수리 대행"
+    },
+    {
+      "href": "#/plus-service/battery-care",
+      "text": "배터리 교체"
+    },
+    {
+      "href": "#/plus-service/smart-device-care",
+      "text": "스마트 기기 파손 보상"
+    },
+    {
+      "href": "#/plus-service/premium-care",
+      "text": "프리미엄 임대폰 무료"
+    },
+    {
+      "href": "#/plus-service/scam-care",
+      "text": "통신 생활 케어"
+    },
+    {
+      "href": "#/plus-service/reward-mall",
+      "text": "플러스 서비스 제휴 몰"
+    },
+    {
+      "href": "#/plus-service/switch-service",
+      "text": "스위치 서비스"
+    },
+    {
+      "href": "#/my-page",
+      "text": ""
+    },
+    {
+      "href": "#/my-page/subscription-info",
+      "text": "가입 정보"
+    },
+    {
+      "href": "#/my-page/claim-summary",
+      "text": "접수 현황"
+    },
+    {
+      "href": "#/my-page/claim-history",
+      "text": "접수 이력"
+    },
+    {
+      "href": "#/help/support-customer",
+      "text": ""
+    },
+    {
+      "href": "#/help/inquiry",
+      "text": "1:1 문의"
+    },
+    {
+      "href": "#/help/user-guide",
+      "text": "이용 안내"
+    },
+    {
+      "href": "#/help/repair-center",
+      "text": "수리 센터"
+    },
+    {
+      "href": "#/help/faq",
+      "text": "자주 하는 질문"
+    },
+    {
+      "href": "#/help/notice",
+      "text": "공지사항"
+    }
+  ],
+  "tables": [],
+  "meta": {
+    "description": "T 올케어, SKT 휴대폰 보험 보상 접수부터 스마트폰 케어까지",
+    "ogTitle": "T 올케어"
+  },
+  "crawled_at": "2026-04-14T10:18:21.061Z"
+}
