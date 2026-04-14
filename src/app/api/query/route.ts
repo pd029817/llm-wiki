@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { runQuery } from "@/lib/claude";
+import { runQuery } from "@/lib/llm";
 import { SchemaConfig, WikiPage } from "@/lib/types";
 
 export async function POST(request: NextRequest) {

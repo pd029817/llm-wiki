@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { runChat } from "@/lib/claude";
+import { runChat } from "@/lib/llm";
 import { SchemaConfig, WikiPage, ChatMessage } from "@/lib/types";
 
 export async function POST(request: NextRequest) {

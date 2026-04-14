@@ -1,9 +1,8 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { SchemaConfig, WikiPage } from "./types";
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY!,
-});
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY!);
+const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
 function buildSystemPrompt(config: SchemaConfig, operation: "ingest" | "query" | "lint" | "chat"): string {
   const baseRules = `위키 규칙:\n- 카테고리: ${config.categories.join(", ")}\n- 페이지 템플릿:\n${config.rules.page_template}`;
@@ -38,14 +37,12 @@ export async function runIngest(
     ? `\n\n기존 위키 페이지 목록:\n${existingPages.map((p) => `- ${p.title} (${p.slug})`).join("\n")}`
     : "\n\n기존 위키 페이지가 없습니다.";
 
-  const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 4096,
-    system,
-    messages: [{ role: "user", content: `원본 문서:\n${documentContent}${context}` }],
+  const result = await model.generateContent({
+    systemInstruction: system,
+    contents: [{ role: "user", parts: [{ text: `원본 문서:\n${documentContent}${context}` }] }],
   });
 
-  const text = response.content[0].type === "text" ? response.content[0].text : "";
+  const text = result.response.text();
   const jsonMatch = text.match(/\[[\s\S]*\]/);
   if (!jsonMatch) throw new Error("LLM 응답에서 JSON을 파싱할 수 없습니다.");
   return JSON.parse(jsonMatch[0]);
@@ -59,14 +56,12 @@ export async function runQuery(
   const system = buildSystemPrompt(config, "query");
   const context = formatWikiContext(relevantPages);
 
-  const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 2048,
-    system,
-    messages: [{ role: "user", content: `위키 페이지:\n${context}\n\n질문: ${question}` }],
+  const result = await model.generateContent({
+    systemInstruction: system,
+    contents: [{ role: "user", parts: [{ text: `위키 페이지:\n${context}\n\n질문: ${question}` }] }],
   });
 
-  return response.content[0].type === "text" ? response.content[0].text : "";
+  return result.response.text();
 }
 
 export async function runLint(
@@ -76,14 +71,12 @@ export async function runLint(
   const system = buildSystemPrompt(config, "lint");
   const context = formatWikiContext(pages);
 
-  const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 4096,
-    system,
-    messages: [{ role: "user", content: `검토 대상 위키 페이지:\n${context}` }],
+  const result = await model.generateContent({
+    systemInstruction: system,
+    contents: [{ role: "user", parts: [{ text: `검토 대상 위키 페이지:\n${context}` }] }],
   });
 
-  const text = response.content[0].type === "text" ? response.content[0].text : "";
+  const text = result.response.text();
   const jsonMatch = text.match(/\[[\s\S]*\]/);
   if (!jsonMatch) return [];
   return JSON.parse(jsonMatch[0]);
@@ -101,12 +94,16 @@ export async function runChat(
 
   const systemWithContext = context ? `${system}\n\n${context}` : system;
 
-  const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 2048,
-    system: systemWithContext,
-    messages,
+  // Gemini uses "model" role instead of "assistant"
+  const geminiMessages = messages.map((m) => ({
+    role: m.role === "assistant" ? "model" as const : "user" as const,
+    parts: [{ text: m.content }],
+  }));
+
+  const result = await model.generateContent({
+    systemInstruction: systemWithContext,
+    contents: geminiMessages,
   });
 
-  return response.content[0].type === "text" ? response.content[0].text : "";
+  return result.response.text();
 }
