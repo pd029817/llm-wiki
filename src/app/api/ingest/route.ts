@@ -15,10 +15,10 @@ function formatLine(line: string): string {
   if (!trimmed) return "";
 
   // 제 N 편/장/절/조 → 헤딩
-  if (/^제\s*\d+\s*편\b/.test(trimmed) && trimmed.length < 120) return `## ${trimmed}`;
-  if (/^제\s*\d+\s*장\b/.test(trimmed) && trimmed.length < 120) return `## ${trimmed}`;
-  if (/^제\s*\d+\s*절\b/.test(trimmed) && trimmed.length < 120) return `### ${trimmed}`;
-  if (/^제\s*\d+\s*조\b/.test(trimmed) && trimmed.length < 200) return `### ${trimmed}`;
+  if (/^제\s*\d+\s*편(?:\s|[(])/.test(trimmed) && trimmed.length < 120) return `## ${trimmed}`;
+  if (/^제\s*\d+\s*장(?:\s|[(]|$)/.test(trimmed) && trimmed.length < 120) return `## ${trimmed}`;
+  if (/^제\s*\d+\s*절(?:\s|[(]|$)/.test(trimmed) && trimmed.length < 120) return `### ${trimmed}`;
+  if (/^제\s*\d+\s*조(?:\s|[(]|$)/.test(trimmed) && trimmed.length < 200) return `### ${trimmed}`;
 
   // Chapter / Section
   if (/^(chapter|section|part)\s+\d+/i.test(trimmed) && trimmed.length < 120) return `## ${trimmed}`;

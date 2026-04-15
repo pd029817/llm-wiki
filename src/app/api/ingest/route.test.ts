@@ -129,7 +129,7 @@ describe("POST /api/ingest", () => {
     expect(pages[0].title).toBe("NDA_미래테크");
     expect(pages[0].slug).toBe("nda-미래테크");
     expect(pages[0].content).toContain("# NDA_미래테크");
-    expect(pages[0].content).toContain("## 제1조");
+    expect(pages[0].content).toContain("### 제1조");
     expect(pages[0].source_ids).toEqual(["src-1"]);
 
     const logs = supabaseRef.current!._state.change_log;
@@ -233,6 +233,94 @@ describe("POST /api/ingest", () => {
     expect(res.status).toBe(200);
     const page = supabaseRef.current!._state.wiki_pages[0];
     expect(page.category).toBe("기존");
+  });
+
+  it("renders a JSON object as a markdown key-value list", async () => {
+    const jsonBody = JSON.stringify({
+      name: "홍길동",
+      age: 30,
+      active: true,
+      note: null,
+      tags: ["red", "blue"],
+    });
+    supabaseRef.current = makeSupabase({
+      sources: [{ id: "src-json-obj", title: "profile.json", content: jsonBody }],
+      pages: [],
+    });
+    const { POST } = await import("./route");
+    const res = await POST(postRequest({ source_id: "src-json-obj" }));
+    expect(res.status).toBe(200);
+    const page = supabaseRef.current!._state.wiki_pages[0];
+    expect(page.content).toContain("# profile");
+    expect(page.content).toContain("- **name**: 홍길동");
+    expect(page.content).toContain("- **age**: 30");
+    expect(page.content).toContain("- **active**: true");
+    expect(page.content).toContain("- **note**: _null_");
+    expect(page.content).toContain("- **tags**:");
+    expect(page.content).toContain("  - red");
+    expect(page.content).toContain("  - blue");
+    expect(page.content).toContain("<details>");
+    expect(page.content).toContain("```json");
+  });
+
+  it("renders a flat JSON array of objects as a markdown table", async () => {
+    const jsonBody = JSON.stringify([
+      { id: 1, name: "A", active: true },
+      { id: 2, name: "B", active: false },
+    ]);
+    supabaseRef.current = makeSupabase({
+      sources: [{ id: "src-json-arr", title: "rows.json", content: jsonBody }],
+      pages: [],
+    });
+    const { POST } = await import("./route");
+    const res = await POST(postRequest({ source_id: "src-json-arr" }));
+    expect(res.status).toBe(200);
+    const page = supabaseRef.current!._state.wiki_pages[0];
+    expect(page.content).toContain("| id | name | active |");
+    expect(page.content).toContain("| --- | --- | --- |");
+    expect(page.content).toContain("| 1 | A | true |");
+    expect(page.content).toContain("| 2 | B | false |");
+  });
+
+  it("falls back to text markdown when JSON is malformed", async () => {
+    supabaseRef.current = makeSupabase({
+      sources: [
+        { id: "src-bad", title: "broken.json", content: "{not valid json" },
+      ],
+      pages: [],
+    });
+    const { POST } = await import("./route");
+    const res = await POST(postRequest({ source_id: "src-bad" }));
+    expect(res.status).toBe(200);
+    const page = supabaseRef.current!._state.wiki_pages[0];
+    expect(page.content).toContain("{not valid json");
+    expect(page.content).not.toContain("```json");
+  });
+
+  it("formats bullets and numbered sections for PDF-like text", async () => {
+    supabaseRef.current = makeSupabase({
+      sources: [
+        {
+          id: "src-md",
+          title: "guide.pdf",
+          content:
+            "제1장 개요\n\n" +
+            "1.1 목적\n\n" +
+            "본 문서는 테스트용입니다.\n\n" +
+            "• 항목 하나\n• 항목 둘\n• 항목 셋",
+        },
+      ],
+      pages: [],
+    });
+    const { POST } = await import("./route");
+    const res = await POST(postRequest({ source_id: "src-md" }));
+    expect(res.status).toBe(200);
+    const page = supabaseRef.current!._state.wiki_pages[0];
+    expect(page.content).toContain("## 제1장 개요");
+    expect(page.content).toContain("### 1.1 목적");
+    expect(page.content).toContain("- 항목 하나");
+    expect(page.content).toContain("- 항목 둘");
+    expect(page.content).toContain("- 항목 셋");
   });
 
   it("does not call any external LLM provider", async () => {
