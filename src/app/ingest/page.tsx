@@ -10,10 +10,33 @@ export default function IngestPage() {
   const [results, setResults] = useState<any[]>([]);
   const [error, setError] = useState("");
 
+  const extractPdfText = async (file: File): Promise<string> => {
+    const pdfjs = await import("pdfjs-dist");
+    pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjs.getDocument({ data: buf }).promise;
+    const parts: string[] = [];
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const tc = await page.getTextContent();
+      parts.push(tc.items.map((it: any) => it.str ?? "").join(" "));
+    }
+    return parts.join("\n\n");
+  };
+
   const handleFileSelect = async (file: File) => {
-    const text = await file.text();
+    setError("");
     setTitle(file.name);
-    setContent(text);
+    try {
+      const isPdf =
+        file.type === "application/pdf" ||
+        file.name.toLowerCase().endsWith(".pdf");
+      const text = isPdf ? await extractPdfText(file) : await file.text();
+      setContent(text);
+    } catch (e: any) {
+      setError(`파일 읽기 실패: ${e?.message ?? e}`);
+      setContent("");
+    }
   };
 
   const handleIngest = async () => {
