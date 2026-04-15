@@ -70,9 +70,27 @@ export default function SettingsPage() {
   };
 
   const removeCategory = async (cat: string) => {
+    try {
+      const res = await fetch(`/api/wiki?category=${encodeURIComponent(cat)}`);
+      const pages = await res.json().catch(() => []);
+      const count = Array.isArray(pages) ? pages.length : 0;
+      if (count > 0) {
+        window.alert(
+          `"${cat}" 카테고리를 사용하는 위키 페이지가 ${count}개 있어 삭제할 수 없습니다.\n해당 페이지들의 카테고리를 먼저 변경해 주세요.`,
+        );
+        return;
+      }
+    } catch {
+      window.alert("카테고리 사용 여부를 확인하지 못해 삭제를 취소했습니다.");
+      return;
+    }
+
+    if (!window.confirm(`"${cat}" 카테고리를 삭제하시겠습니까?`)) return;
+
     const next = categories.filter((c) => c !== cat);
     setCategories(next);
     await persistCategories(next);
+    window.alert(`"${cat}" 카테고리를 삭제했습니다.`);
   };
 
   const persistTerminology = async (next: Record<string, string>) => {
