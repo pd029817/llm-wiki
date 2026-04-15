@@ -7,6 +7,7 @@ const navItems = [
   { href: "/", label: "대시보드" },
   { href: "/wiki", label: "위키" },
   { href: "/ingest", label: "소스 업로드" },
+  { href: "/sources", label: "원본 소스" },
   { href: "/query", label: "질의" },
   { href: "/chat", label: "챗봇" },
   { href: "/lint", label: "Lint" },
