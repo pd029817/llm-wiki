@@ -45,34 +45,38 @@ export default function IngestPage() {
     setError("");
     setResults([]);
 
-    const sourceRes = await fetch("/api/sources", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, content, mime_type: "text/plain" }),
-    });
-    const source = await sourceRes.json();
+    try {
+      const sourceRes = await fetch("/api/sources", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, content, mime_type: "text/plain" }),
+      });
+      const source = await sourceRes.json().catch(() => ({}));
 
-    if (!sourceRes.ok) {
-      setError(source.error || "소스 저장 실패");
+      if (!sourceRes.ok) {
+        setError(source.error || "소스 저장 실패");
+        return;
+      }
+
+      const ingestRes = await fetch("/api/ingest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ source_id: source.id }),
+      });
+      const ingestData = await ingestRes.json().catch(() => ({}));
+
+      if (!ingestRes.ok) {
+        setError(ingestData.error || "Ingest 실패");
+      } else {
+        setResults(ingestData.results || []);
+        setTitle("");
+        setContent("");
+      }
+    } catch (e: any) {
+      setError(e?.message || "Ingest 실패");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const ingestRes = await fetch("/api/ingest", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ source_id: source.id }),
-    });
-    const ingestData = await ingestRes.json();
-
-    if (!ingestRes.ok) {
-      setError(ingestData.error || "Ingest 실패");
-    } else {
-      setResults(ingestData.results || []);
-      setTitle("");
-      setContent("");
-    }
-    setLoading(false);
   };
 
   return (
