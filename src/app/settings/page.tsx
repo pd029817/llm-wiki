@@ -13,6 +13,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [configId, setConfigId] = useState("");
   const [termStatus, setTermStatus] = useState<"" | "saving" | "saved" | "error">("");
+  const [catStatus, setCatStatus] = useState<"" | "saving" | "saved" | "error">("");
 
   useEffect(() => {
     fetch("/api/settings")
@@ -40,11 +41,38 @@ export default function SettingsPage() {
     setSaving(false);
   };
 
-  const addCategory = () => {
-    if (newCategory && !categories.includes(newCategory)) {
-      setCategories([...categories, newCategory]);
-      setNewCategory("");
+  const persistCategories = async (next: string[]) => {
+    setCatStatus("saving");
+    const res = await fetch("/api/settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: configId,
+        categories: next,
+        rules: { page_template: pageTemplate, terminology },
+      }),
+    });
+    if (res.ok) {
+      setCatStatus("saved");
+      setTimeout(() => setCatStatus(""), 1500);
+    } else {
+      setCatStatus("error");
     }
+  };
+
+  const addCategory = async () => {
+    const trimmed = newCategory.trim();
+    if (!trimmed || categories.includes(trimmed)) return;
+    const next = [...categories, trimmed];
+    setCategories(next);
+    setNewCategory("");
+    await persistCategories(next);
+  };
+
+  const removeCategory = async (cat: string) => {
+    const next = categories.filter((c) => c !== cat);
+    setCategories(next);
+    await persistCategories(next);
   };
 
   const persistTerminology = async (next: Record<string, string>) => {
@@ -99,14 +127,21 @@ export default function SettingsPage() {
 
       <div className="space-y-6">
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="font-semibold mb-3">카테고리</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-semibold">카테고리</h2>
+            {catStatus === "saving" && <span className="text-xs text-gray-500">저장 중...</span>}
+            {catStatus === "saved" && <span className="text-xs text-green-600">✓ 저장됨</span>}
+            {catStatus === "error" && <span className="text-xs text-red-600">저장 실패</span>}
+          </div>
+          <p className="text-xs text-gray-500 mb-3">추가·삭제 시 자동으로 저장됩니다.</p>
           <div className="flex flex-wrap gap-2 mb-3">
             {categories.map((cat) => (
               <span key={cat} className="bg-gray-100 px-3 py-1 rounded text-sm flex items-center gap-1">
                 {cat}
                 <button
-                  onClick={() => setCategories(categories.filter((c) => c !== cat))}
+                  onClick={() => removeCategory(cat)}
                   className="text-gray-400 hover:text-red-500 ml-1"
+                  title="삭제"
                 >
                   x
                 </button>
