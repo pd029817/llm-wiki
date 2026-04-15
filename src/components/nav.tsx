@@ -11,6 +11,7 @@ const navItems = [
   { href: "/query", label: "질의" },
   { href: "/chat", label: "챗봇" },
   { href: "/lint", label: "Lint" },
+  { href: "/changelog", label: "변경 이력" },
   { href: "/settings", label: "설정" },
 ];
 
