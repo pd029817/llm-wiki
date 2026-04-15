@@ -27,7 +27,7 @@ export function FileUpload({ onFileSelect }: { onFileSelect: (file: File) => voi
         onChange={(e) => { if (e.target.files?.[0]) onFileSelect(e.target.files[0]); }}
         className="hidden"
         id="file-input"
-        accept=".txt,.md,.pdf,.doc,.docx"
+        accept=".txt,.md,.pdf,.doc,.docx,.json"
       />
       <label htmlFor="file-input" className="text-sm text-blue-600 hover:underline cursor-pointer">
         파일 선택
