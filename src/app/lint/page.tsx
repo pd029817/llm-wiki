@@ -58,6 +58,7 @@ export default function LintPage() {
   const [editedContent, setEditedContent] = useState<Record<number, string>>({});
   const [editMode, setEditMode] = useState<Record<number, boolean>>({});
   const [dismissedIndexes, setDismissedIndexes] = useState<Set<number>>(new Set());
+  const [modalMessage, setModalMessage] = useState<string | null>(null);
 
   const handleLint = async () => {
     setLoading(true);
@@ -67,9 +68,9 @@ export default function LintPage() {
       const data = text ? JSON.parse(text) : {};
       setIssues(data.issues || []);
       setTotalPages(data.total_pages || 0);
-      if (data.error) alert(data.error);
+      if (data.error) setModalMessage(data.error);
     } catch (e) {
-      alert(`Lint 요청 실패: ${e instanceof Error ? e.message : String(e)}`);
+      setModalMessage(`Lint 요청 실패: ${e instanceof Error ? e.message : String(e)}`);
     }
     setHasRun(true);
     setLoading(false);
@@ -100,7 +101,7 @@ export default function LintPage() {
       setProposals((p) => ({ ...p, [i]: data }));
       setEditedContent((e) => ({ ...e, [i]: data.proposed_content }));
     } else {
-      alert(`수정 제안 실패: ${data.error || "알 수 없는 오류"}`);
+      setModalMessage(`수정 제안 실패: ${data.error || "알 수 없는 오류"}`);
     }
     setFixingIndex(null);
   };
@@ -122,7 +123,7 @@ export default function LintPage() {
       setAppliedIndexes((s) => new Set(s).add(i));
     } else {
       const data = await res.json();
-      alert(`적용 실패: ${data.error || res.status}`);
+      setModalMessage(`적용 실패: ${data.error || res.status}`);
     }
     setApplyingIndex(null);
   };
@@ -142,6 +143,29 @@ export default function LintPage() {
 
   return (
     <div>
+      {modalMessage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setModalMessage(null)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl max-w-md w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">알림</h3>
+            <p className="text-sm text-gray-700 whitespace-pre-wrap mb-5">{modalMessage}</p>
+            <div className="flex justify-end">
+              <button
+                onClick={() => setModalMessage(null)}
+                className="bg-blue-600 text-white px-4 py-1.5 rounded text-sm hover:bg-blue-700"
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Lint 리포트</h1>
         <button
