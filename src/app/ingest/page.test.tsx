@@ -9,6 +9,14 @@ vi.mock("mammoth/mammoth.browser", () => ({
   convertToMarkdown: async () => ({ value: "# 제목\n\n본문 단락" }),
 }));
 
+let ocrCalls = 0;
+vi.mock("tesseract.js", () => ({
+  recognize: async () => {
+    ocrCalls++;
+    return { data: { text: "이미지에서 추출한 글자" } };
+  },
+}));
+
 vi.mock("pdfjs-dist", () => ({
   version: "test",
   GlobalWorkerOptions: { workerSrc: "" },
@@ -22,6 +30,9 @@ vi.mock("pdfjs-dist", () => ({
               ? [{ str: "안녕" }, { str: "하세요" }]
               : [{ str: "PDF" }, { str: "본문" }],
         }),
+        getOperatorList: async () => ({ fnArray: n === 2 ? [85] : [1, 2] }),
+        getViewport: () => ({ width: 10, height: 10 }),
+        render: () => ({ promise: Promise.resolve() }),
       }),
       _size: data.byteLength,
     }),
@@ -34,6 +45,8 @@ let queuedNonSettings: Array<{ ok?: boolean; body: unknown }> = [];
 beforeEach(() => {
   fetchCalls = [];
   queuedNonSettings = [];
+  ocrCalls = 0;
+  HTMLCanvasElement.prototype.getContext = (() => ({})) as any;
   global.fetch = vi.fn(async (url: string, init?: RequestInit) => {
     fetchCalls.push({ url, init });
     if (typeof url === "string" && url.startsWith("/api/settings")) {
@@ -103,7 +116,10 @@ describe("IngestPage", () => {
     await waitFor(() => {
       expect(textarea.value).toContain("안녕 하세요");
       expect(textarea.value).toContain("PDF 본문");
+      expect(textarea.value).toContain("이미지에서 추출한 텍스트 (OCR)");
+      expect(textarea.value).toContain("이미지에서 추출한 글자");
     });
+    expect(ocrCalls).toBeGreaterThan(0);
     expect((screen.getByPlaceholderText("문서 제목") as HTMLInputElement).value).toBe("doc.pdf");
   });
 

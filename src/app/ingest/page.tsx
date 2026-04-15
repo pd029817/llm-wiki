@@ -25,6 +25,57 @@ export default function IngestPage() {
     })();
   }, []);
 
+  const pageHasImages = async (page: any): Promise<boolean> => {
+    try {
+      const ops = await page.getOperatorList();
+      const IMG_OPS = new Set([
+        (ops as any).OPS?.paintImageXObject,
+        (ops as any).OPS?.paintJpegXObject,
+        (ops as any).OPS?.paintInlineImageXObject,
+        (ops as any).OPS?.paintImageMaskXObject,
+      ].filter((n) => typeof n === "number"));
+      // pdfjs exposes OPS at module scope, not on the result; fall back to known codes
+      const fallback = new Set([85, 86, 87, 88]); // paintImageXObject family (approx)
+      const set = IMG_OPS.size ? IMG_OPS : fallback;
+      return (ops.fnArray as number[]).some((op) => set.has(op));
+    } catch {
+      return true; // 실패 시 OCR 시도
+    }
+  };
+
+  const ocrPage = async (page: any, scale = 2): Promise<string> => {
+    const viewport = page.getViewport({ scale });
+    const canvas = document.createElement("canvas");
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return "";
+    await page.render({ canvasContext: ctx, viewport, canvas }).promise;
+    const tesseract: any = await import("tesseract.js");
+    const recognize = tesseract.recognize ?? tesseract.default?.recognize;
+    const { data } = await recognize(canvas, "kor+eng");
+    canvas.width = 0;
+    canvas.height = 0;
+    return (data?.text ?? "").replace(/\s+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+  };
+
+  const mergeOcr = (textLayer: string, ocr: string): string => {
+    if (!ocr) return textLayer;
+    const existing = new Set(
+      textLayer
+        .split(/\n+/)
+        .map((s) => s.replace(/\s+/g, " ").trim())
+        .filter(Boolean)
+    );
+    const extra = ocr
+      .split(/\n+/)
+      .map((s) => s.replace(/\s+/g, " ").trim())
+      .filter((s) => s.length >= 2 && !existing.has(s));
+    if (!extra.length) return textLayer;
+    const block = `\n\n> 이미지에서 추출한 텍스트 (OCR)\n\n${extra.map((l) => `- ${l}`).join("\n")}`;
+    return textLayer ? textLayer + block : extra.join("\n");
+  };
+
   const extractPdfText = async (file: File): Promise<string> => {
     const pdfjs = await import("pdfjs-dist");
     pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
@@ -65,7 +116,19 @@ export default function IngestPage() {
           if (median > 0 && gap > median * 1.6) pageLines.push("");
         }
       }
-      pages.push(pageLines.join("\n"));
+      const textLayer = pageLines.join("\n");
+      let merged = textLayer;
+      try {
+        const hasImg = await pageHasImages(page);
+        const scanSparse = textLayer.replace(/\s/g, "").length < 40; // 거의 비어있으면 스캔 PDF로 간주
+        if (hasImg || scanSparse) {
+          const ocr = await ocrPage(page);
+          merged = mergeOcr(textLayer, ocr);
+        }
+      } catch {
+        // OCR 실패는 치명적이지 않음 — 텍스트 레이어만 사용
+      }
+      pages.push(merged);
     }
     return pages.join("\n\n");
   };
