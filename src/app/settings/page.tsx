@@ -12,6 +12,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [configId, setConfigId] = useState("");
+  const [termStatus, setTermStatus] = useState<"" | "saving" | "saved" | "error">("");
 
   useEffect(() => {
     fetch("/api/settings")
@@ -46,12 +47,39 @@ export default function SettingsPage() {
     }
   };
 
-  const addTerminology = () => {
-    if (newTermKey && newTermValue) {
-      setTerminology({ ...terminology, [newTermKey]: newTermValue });
-      setNewTermKey("");
-      setNewTermValue("");
+  const persistTerminology = async (next: Record<string, string>) => {
+    setTermStatus("saving");
+    const res = await fetch("/api/settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: configId,
+        categories,
+        rules: { page_template: pageTemplate, terminology: next },
+      }),
+    });
+    if (res.ok) {
+      setTermStatus("saved");
+      setTimeout(() => setTermStatus(""), 1500);
+    } else {
+      setTermStatus("error");
     }
+  };
+
+  const addTerminology = async () => {
+    if (!newTermKey || !newTermValue) return;
+    const next = { ...terminology, [newTermKey]: newTermValue };
+    setTerminology(next);
+    setNewTermKey("");
+    setNewTermValue("");
+    await persistTerminology(next);
+  };
+
+  const removeTerminology = async (key: string) => {
+    const next = { ...terminology };
+    delete next[key];
+    setTerminology(next);
+    await persistTerminology(next);
   };
 
   if (loading) return <p className="text-sm text-gray-500">로딩 중...</p>;
@@ -108,7 +136,13 @@ export default function SettingsPage() {
         </div>
 
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="font-semibold mb-3">용어 통일</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-semibold">용어 통일</h2>
+            {termStatus === "saving" && <span className="text-xs text-gray-500">저장 중...</span>}
+            {termStatus === "saved" && <span className="text-xs text-green-600">✓ 저장됨</span>}
+            {termStatus === "error" && <span className="text-xs text-red-600">저장 실패</span>}
+          </div>
+          <p className="text-xs text-gray-500 mb-3">추가·삭제 시 자동으로 저장됩니다.</p>
           <div className="space-y-1 mb-3">
             {Object.entries(terminology).map(([key, value]) => (
               <div key={key} className="flex items-center gap-2 text-sm">
@@ -116,12 +150,9 @@ export default function SettingsPage() {
                 <span className="text-gray-500">=</span>
                 <span>{value}</span>
                 <button
-                  onClick={() => {
-                    const next = { ...terminology };
-                    delete next[key];
-                    setTerminology(next);
-                  }}
+                  onClick={() => removeTerminology(key)}
                   className="text-gray-400 hover:text-red-500"
+                  title="삭제"
                 >
                   x
                 </button>
@@ -135,6 +166,7 @@ export default function SettingsPage() {
               onChange={(e) => setNewTermKey(e.target.value)}
               placeholder="용어"
               className="border rounded px-3 py-1 text-sm text-gray-900 w-32"
+              onKeyDown={(e) => { if (e.key === "Enter") addTerminology(); }}
             />
             <input
               type="text"
@@ -142,6 +174,7 @@ export default function SettingsPage() {
               onChange={(e) => setNewTermValue(e.target.value)}
               placeholder="통일 표기"
               className="border rounded px-3 py-1 text-sm text-gray-900 w-48"
+              onKeyDown={(e) => { if (e.key === "Enter") addTerminology(); }}
             />
             <button onClick={addTerminology} className="text-sm text-blue-600 hover:underline">추가</button>
           </div>
