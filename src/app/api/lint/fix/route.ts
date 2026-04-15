@@ -1,76 +1,131 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import Groq from "groq-sdk";
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY! });
-const MODEL = "llama-3.3-70b-versatile";
+export const runtime = "nodejs";
+
+interface LintIssue {
+  page_slug: string;
+  issue_type: string;
+  description: string;
+  suggestion: string;
+}
+
+function extractLinks(suggestion: string): { title: string; slug: string }[] {
+  const links: { title: string; slug: string }[] = [];
+  const re = /\[([^\]]+)\]\(\/wiki\/([^)\s]+)\)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(suggestion)) !== null) {
+    links.push({ title: m[1].trim(), slug: decodeURIComponent(m[2].trim()) });
+  }
+  return links;
+}
+
+function ensureRelatedSection(content: string, links: { title: string; slug: string }[]): string {
+  if (links.length === 0) return content;
+
+  const body = content.replace(/\s+$/, "");
+  const sectionRe = /(^|\n)##\s+관련\s*(문서|항목|페이지)\s*\n/;
+  const match = body.match(sectionRe);
+
+  const newLines = links
+    .filter((l) => !body.includes(`/wiki/${l.slug}`) && !body.includes(`/wiki/${encodeURIComponent(l.slug)}`))
+    .map((l) => `- [${l.title}](/wiki/${l.slug})`);
+
+  if (newLines.length === 0) return content;
+
+  if (match) {
+    const idx = match.index! + match[0].length;
+    const before = body.slice(0, idx);
+    const after = body.slice(idx);
+    return `${before}${newLines.join("\n")}\n${after}\n`;
+  }
+
+  return `${body}\n\n## 관련 문서\n${newLines.join("\n")}\n`;
+}
+
+function updateStale(content: string, suggestion: string, description: string): string {
+  const today = new Date().toISOString().slice(0, 10);
+  let updated = content;
+
+  const statusMatch = suggestion.match(/'상태'\s*메타데이터를\s*'([^']+)'로/);
+  if (statusMatch) {
+    const newStatus = statusMatch[1];
+    updated = updated.replace(/(상태\s*[::]\s*)[^\n]+/g, `$1${newStatus}`);
+  }
+
+  const hasLastUpdated = /(최종\s*업데이트|최종\s*수정|Last\s*updated)\s*[::]/i.test(updated);
+  if (hasLastUpdated) {
+    updated = updated.replace(
+      /((?:최종\s*업데이트|최종\s*수정|Last\s*updated)\s*[::]\s*)[0-9]{4}[-./][0-9]{1,2}[-./][0-9]{1,2}/gi,
+      `$1${today}`
+    );
+  } else {
+    updated = `${updated.replace(/\s+$/, "")}\n\n> 최종 업데이트: ${today}\n`;
+  }
+
+  const note = `\n\n> ⚠️ Lint 자동 갱신(${today}): ${description.replace(/\s+/g, " ").trim()} — ${suggestion.replace(/\s+/g, " ").trim()}\n`;
+  if (!updated.includes("Lint 자동 갱신")) {
+    updated = `${updated.replace(/\s+$/, "")}${note}`;
+  }
+
+  return updated;
+}
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
-  const { page_slug, issue_type, description, suggestion } = await request.json();
+  const issue = (await request.json()) as LintIssue;
+  const { page_slug, issue_type, description, suggestion } = issue;
 
-  const { data: page } = await supabase
-    .from("wiki_pages")
-    .select("*")
-    .eq("slug", page_slug)
-    .single();
+  const candidates = Array.from(
+    new Set([page_slug, page_slug?.normalize("NFC"), page_slug?.normalize("NFD")].filter(Boolean))
+  );
+
+  let page: { slug: string; title: string; category: string; content: string } | null = null;
+  for (const s of candidates) {
+    const { data } = await supabase.from("wiki_pages").select("*").eq("slug", s).maybeSingle();
+    if (data) {
+      page = data;
+      break;
+    }
+  }
 
   if (!page) return NextResponse.json({ error: "페이지를 찾을 수 없습니다." }, { status: 404 });
 
-  const { data: allPages } = await supabase
-    .from("wiki_pages")
-    .select("title, slug");
+  let proposed: string;
+  if (issue_type === "missing_link" || issue_type === "orphan") {
+    const links = extractLinks(suggestion);
+    if (links.length === 0) {
+      return NextResponse.json(
+        { error: "suggestion에서 링크를 파싱하지 못했습니다. 수동으로 편집해 주세요." },
+        { status: 422 }
+      );
+    }
+    proposed = ensureRelatedSection(page.content, links);
+  } else if (issue_type === "stale") {
+    proposed = updateStale(page.content, suggestion, description);
+  } else {
+    return NextResponse.json(
+      {
+        error: `'${issue_type}' 유형은 규칙 기반 자동 수정이 불가합니다. [편집] 버튼으로 직접 수정해 주세요.`,
+      },
+      { status: 422 }
+    );
+  }
 
-  const pageList = (allPages || [])
-    .map((p: { title: string; slug: string }) => `- ${p.title} (${p.slug})`)
-    .join("\n");
-
-  const system = `당신은 위키 편집자입니다. 주어진 Lint 이슈를 해결하도록 위키 페이지의 마크다운 내용만 수정하여 반환하세요.
-규칙:
-- 전체 페이지 마크다운 내용만 반환 (설명, 코드펜스 금지)
-- 기존 내용의 의미와 구조는 최대한 유지
-- 크로스레퍼런스는 [[페이지슬러그]] 또는 [제목](/wiki/슬러그) 형식
-- 이슈 유형별:
-  * contradiction: 모순되는 문장을 정확히 수정
-  * stale: 최신 상태 반영 (날짜/버전 업데이트 표시)
-  * orphan: 관련 페이지로의 링크를 자연스럽게 추가
-  * missing_link: 누락된 크로스레퍼런스 삽입`;
-
-  const user = `페이지 제목: ${page.title}
-슬러그: ${page.slug}
-카테고리: ${page.category}
-
-현재 내용:
-${page.content}
-
-Lint 이슈:
-- 유형: ${issue_type}
-- 설명: ${description}
-- 제안: ${suggestion}
-
-전체 위키 페이지 목록 (링크 후보):
-${pageList}
-
-수정된 전체 마크다운을 반환하세요:`;
-
-  const res = await groq.chat.completions.create({
-    model: MODEL,
-    messages: [
-      { role: "system", content: system },
-      { role: "user", content: user },
-    ],
-  });
-
-  const proposed = res.choices[0]?.message?.content?.trim() || "";
-  const cleaned = proposed.replace(/^```(?:markdown|md)?\n?|\n?```$/g, "").trim();
+  if (proposed.trim() === page.content.trim()) {
+    return NextResponse.json(
+      { error: "이미 제안된 변경 사항이 본문에 반영되어 있습니다." },
+      { status: 422 }
+    );
+  }
 
   return NextResponse.json({
     slug: page.slug,
     title: page.title,
     category: page.category,
     original_content: page.content,
-    proposed_content: cleaned,
+    proposed_content: proposed,
   });
 }
 
-export const maxDuration = 30;
+export const maxDuration = 10;

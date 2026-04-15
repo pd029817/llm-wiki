@@ -49,6 +49,7 @@ const issueTypeLabels: Record<string, { label: string; color: string }> = {
 export default function LintPage() {
   const [issues, setIssues] = useState<LintIssue[]>([]);
   const [totalPages, setTotalPages] = useState(0);
+  const [generatedAt, setGeneratedAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [hasRun, setHasRun] = useState(false);
   const [fixingIndex, setFixingIndex] = useState<number | null>(null);
@@ -68,6 +69,7 @@ export default function LintPage() {
       const data = text ? JSON.parse(text) : {};
       setIssues(data.issues || []);
       setTotalPages(data.total_pages || 0);
+      setGeneratedAt(data.generated_at || null);
       if (data.error) setModalMessage(data.error);
     } catch (e) {
       setModalMessage(`Lint 요청 실패: ${e instanceof Error ? e.message : String(e)}`);
@@ -91,19 +93,25 @@ export default function LintPage() {
 
   const handleProposeFix = async (i: number, issue: LintIssue) => {
     setFixingIndex(i);
-    const res = await fetch("/api/lint/fix", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(issue),
-    });
-    const data = await res.json();
-    if (res.ok) {
-      setProposals((p) => ({ ...p, [i]: data }));
-      setEditedContent((e) => ({ ...e, [i]: data.proposed_content }));
-    } else {
-      setModalMessage(`수정 제안 실패: ${data.error || "알 수 없는 오류"}`);
+    try {
+      const res = await fetch("/api/lint/fix", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(issue),
+      });
+      const text = await res.text();
+      const data = text ? (() => { try { return JSON.parse(text); } catch { return { error: text }; } })() : {};
+      if (res.ok) {
+        setProposals((p) => ({ ...p, [i]: data }));
+        setEditedContent((e) => ({ ...e, [i]: data.proposed_content }));
+      } else {
+        setModalMessage(`수정 제안 실패 (${res.status}): ${data.error || "알 수 없는 오류"}`);
+      }
+    } catch (e) {
+      setModalMessage(`수정 제안 요청 실패: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setFixingIndex(null);
     }
-    setFixingIndex(null);
   };
 
   const handleApply = async (i: number) => {
@@ -180,6 +188,9 @@ export default function LintPage() {
       {hasRun && (
         <div className="mb-4 text-sm text-gray-600">
           {totalPages}개 페이지 점검 완료 | {issues.length}건 발견
+          {generatedAt && (
+            <span className="ml-2 text-gray-400">· 리포트 생성: {new Date(generatedAt).toLocaleString("ko-KR")}</span>
+          )}
         </div>
       )}
 

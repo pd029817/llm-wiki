@@ -6,6 +6,8 @@ import { FileUpload } from "@/components/file-upload";
 export default function IngestPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [originalBase64, setOriginalBase64] = useState<string>("");
+  const [originalFilename, setOriginalFilename] = useState<string>("");
   const [category, setCategory] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -212,9 +214,26 @@ export default function IngestPage() {
     return out.join("\n").replace(/\n{3,}/g, "\n\n").trim();
   };
 
+  const fileToBase64 = async (file: File): Promise<string> => {
+    const buf = await file.arrayBuffer();
+    const bytes = new Uint8Array(buf);
+    let binary = "";
+    const chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk) {
+      binary += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + chunk)));
+    }
+    return btoa(binary);
+  };
+
   const handleFileSelect = async (file: File) => {
     setError("");
     setTitle(file.name);
+    setOriginalFilename(file.name);
+    try {
+      setOriginalBase64(await fileToBase64(file));
+    } catch {
+      setOriginalBase64("");
+    }
     try {
       const lower = file.name.toLowerCase();
       const isPdf = file.type === "application/pdf" || lower.endsWith(".pdf");
@@ -257,7 +276,13 @@ export default function IngestPage() {
       const sourceRes = await fetch("/api/sources", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, content, mime_type: "text/plain" }),
+        body: JSON.stringify({
+          title,
+          content,
+          mime_type: "text/plain",
+          original_filename: originalFilename || title,
+          original_base64: originalBase64 || undefined,
+        }),
       });
       const source = await sourceRes.json().catch(() => ({}));
 
@@ -280,6 +305,8 @@ export default function IngestPage() {
         setTitle("");
         setContent("");
         setCategory("");
+        setOriginalBase64("");
+        setOriginalFilename("");
       }
     } catch (e: any) {
       setError(e?.message || "Ingest 실패");

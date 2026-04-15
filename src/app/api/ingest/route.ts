@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { toMarkdown, stripExtension } from "@/lib/markdown";
+import { saveWikiMarkdown } from "@/lib/storage";
+
+export const runtime = "nodejs";
 
 function slugify(input: string): string {
   const base = input
@@ -92,6 +95,12 @@ export async function POST(request: NextRequest) {
       });
 
       applied = { action: "created", page: newPage };
+    }
+
+    try {
+      await saveWikiMarkdown(slug, markdown);
+    } catch (e) {
+      console.error("파일시스템 저장 실패 (wiki):", e);
     }
 
     return NextResponse.json({ results: [applied] });
