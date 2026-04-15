@@ -10,30 +10,34 @@ vi.mock("mammoth/mammoth.browser", () => ({
 }));
 
 let ocrCalls = 0;
+let ocrText = "이미지에서 추출한 글자";
 vi.mock("tesseract.js", () => ({
   recognize: async () => {
     ocrCalls++;
-    return { data: { text: "이미지에서 추출한 글자" } };
+    return { data: { text: ocrText } };
   },
 }));
 
+type PageSpec = {
+  items: { str: string }[];
+  imageOps?: boolean;
+};
+let pdfPages: PageSpec[] = [];
 vi.mock("pdfjs-dist", () => ({
   version: "test",
   GlobalWorkerOptions: { workerSrc: "" },
   getDocument: ({ data }: { data: ArrayBuffer }) => ({
     promise: Promise.resolve({
-      numPages: 2,
-      getPage: async (n: number) => ({
-        getTextContent: async () => ({
-          items:
-            n === 1
-              ? [{ str: "안녕" }, { str: "하세요" }]
-              : [{ str: "PDF" }, { str: "본문" }],
-        }),
-        getOperatorList: async () => ({ fnArray: n === 2 ? [85] : [1, 2] }),
-        getViewport: () => ({ width: 10, height: 10 }),
-        render: () => ({ promise: Promise.resolve() }),
-      }),
+      numPages: pdfPages.length,
+      getPage: async (n: number) => {
+        const spec = pdfPages[n - 1];
+        return {
+          getTextContent: async () => ({ items: spec.items }),
+          getOperatorList: async () => ({ fnArray: spec.imageOps ? [85] : [1, 2] }),
+          getViewport: () => ({ width: 10, height: 10 }),
+          render: () => ({ promise: Promise.resolve() }),
+        };
+      },
       _size: data.byteLength,
     }),
   }),
@@ -46,6 +50,11 @@ beforeEach(() => {
   fetchCalls = [];
   queuedNonSettings = [];
   ocrCalls = 0;
+  ocrText = "이미지에서 추출한 글자";
+  pdfPages = [
+    { items: [{ str: "안녕" }, { str: "하세요" }], imageOps: false },
+    { items: [{ str: "PDF" }, { str: "본문" }], imageOps: true },
+  ];
   HTMLCanvasElement.prototype.getContext = (() => ({})) as any;
   global.fetch = vi.fn(async (url: string, init?: RequestInit) => {
     fetchCalls.push({ url, init });
@@ -121,6 +130,76 @@ describe("IngestPage", () => {
     });
     expect(ocrCalls).toBeGreaterThan(0);
     expect((screen.getByPlaceholderText("문서 제목") as HTMLInputElement).value).toBe("doc.pdf");
+  });
+
+  it("skips OCR entirely when no page contains images and text layer is dense", async () => {
+    pdfPages = [
+      {
+        items: Array.from({ length: 50 }, (_, i) => ({ str: `텍스트${i}` })),
+        imageOps: false,
+      },
+    ];
+    render(<IngestPage />);
+    const input = document.getElementById("file-input") as HTMLInputElement;
+    const pdfFile = new File([new Uint8Array([0x25, 0x50])], "dense.pdf", { type: "application/pdf" });
+    Object.defineProperty(input, "files", { value: [pdfFile] });
+    fireEvent.change(input);
+
+    const textarea = screen.getByPlaceholderText(/문서 내용을 입력하세요/) as HTMLTextAreaElement;
+    await waitFor(() => expect(textarea.value).toContain("텍스트0"));
+    expect(ocrCalls).toBe(0);
+    expect(textarea.value).not.toContain("이미지에서 추출한 텍스트 (OCR)");
+  });
+
+  it("falls back to OCR output when the text layer is sparse (scanned PDF)", async () => {
+    ocrText = "스캔된 본문 한 줄";
+    pdfPages = [{ items: [], imageOps: false }];
+    render(<IngestPage />);
+    const input = document.getElementById("file-input") as HTMLInputElement;
+    const pdfFile = new File([new Uint8Array([0x25])], "scan.pdf", { type: "application/pdf" });
+    Object.defineProperty(input, "files", { value: [pdfFile] });
+    fireEvent.change(input);
+
+    const textarea = screen.getByPlaceholderText(/문서 내용을 입력하세요/) as HTMLTextAreaElement;
+    await waitFor(() => {
+      expect(textarea.value).toContain("스캔된 본문 한 줄");
+    });
+    expect(ocrCalls).toBe(1);
+  });
+
+  it("dedupes OCR lines that already exist in the text layer", async () => {
+    ocrText = "PDF 본문\n완전히 새로운 문장";
+    pdfPages = [{ items: [{ str: "PDF" }, { str: "본문" }], imageOps: true }];
+    render(<IngestPage />);
+    const input = document.getElementById("file-input") as HTMLInputElement;
+    const pdfFile = new File([new Uint8Array([0x25])], "mix.pdf", { type: "application/pdf" });
+    Object.defineProperty(input, "files", { value: [pdfFile] });
+    fireEvent.change(input);
+
+    const textarea = screen.getByPlaceholderText(/문서 내용을 입력하세요/) as HTMLTextAreaElement;
+    await waitFor(() => {
+      expect(textarea.value).toContain("완전히 새로운 문장");
+    });
+    const ocrBlock = textarea.value.split("이미지에서 추출한 텍스트 (OCR)")[1] ?? "";
+    expect(ocrBlock).not.toContain("- PDF 본문");
+    expect(ocrBlock).toContain("- 완전히 새로운 문장");
+  });
+
+  it("does not break ingestion when the OCR engine throws", async () => {
+    const tesseract = await import("tesseract.js");
+    const spy = vi.spyOn(tesseract, "recognize").mockRejectedValueOnce(new Error("ocr down"));
+    pdfPages = [{ items: [{ str: "원문" }, { str: "텍스트" }], imageOps: true }];
+
+    render(<IngestPage />);
+    const input = document.getElementById("file-input") as HTMLInputElement;
+    const pdfFile = new File([new Uint8Array([0x25])], "fail.pdf", { type: "application/pdf" });
+    Object.defineProperty(input, "files", { value: [pdfFile] });
+    fireEvent.change(input);
+
+    const textarea = screen.getByPlaceholderText(/문서 내용을 입력하세요/) as HTMLTextAreaElement;
+    await waitFor(() => expect(textarea.value).toContain("원문 텍스트"));
+    expect(textarea.value).not.toContain("이미지에서 추출한 텍스트 (OCR)");
+    spy.mockRestore();
   });
 
   it("converts .docx uploads to markdown via mammoth", async () => {
