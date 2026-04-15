@@ -126,6 +126,21 @@
   }
   .center { text-align: center; }
   .big-icon { font-size: 80px; margin-bottom: 20px; }
+  .demo-link {
+    display: inline-block; margin-top: 28px; padding: 14px 28px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #0b1220; font-weight: 700; text-decoration: none;
+    border-radius: 999px; font-size: 18px; letter-spacing: .01em;
+    box-shadow: 0 10px 30px rgba(56,189,248,.25);
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .demo-link:hover { transform: translateY(-2px); box-shadow: 0 14px 36px rgba(56,189,248,.35); }
+  .url-box {
+    margin-top: 18px; padding: 14px 20px; display: inline-block;
+    background: rgba(15,23,42,.6); border: 1px solid var(--border);
+    border-radius: 12px; font-family: "SFMono-Regular", Menlo, monospace;
+    font-size: 15px; color: var(--accent); word-break: break-all;
+  }
 </style>
 </head>
 <body>
@@ -289,7 +304,21 @@
     </div>
   </section>
 
-  <!-- 11. Q&A -->
+  <!-- 11. 라이브 데모 -->
+  <section class="slide center">
+    <div class="eyebrow">Live Demo</div>
+    <div class="big-icon">🚀</div>
+    <h1>지금 바로 체험해 보세요</h1>
+    <p class="hero-sub" style="margin:0 auto;">
+      프로덕션 환경에 배포된 LLM-Wiki를<br/>
+      아래 주소에서 직접 사용해볼 수 있습니다.
+    </p>
+    <a class="demo-link" href="https://llm-wiki-nk16pia2d-susies-projects-fd58708b.vercel.app" target="_blank" rel="noopener">▶ 데모 열기</a>
+    <div class="url-box">https://llm-wiki-nk16pia2d-susies-projects-fd58708b.vercel.app</div>
+    <p class="muted" style="margin-top:24px;">※ Vercel 프로덕션 배포 · 2026.04.15 기준</p>
+  </section>
+
+  <!-- 12. Q&A -->
   <section class="slide center">
     <div class="big-icon">🙋</div>
     <h1>Q &amp; A</h1>
