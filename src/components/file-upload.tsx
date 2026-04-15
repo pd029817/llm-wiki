@@ -32,6 +32,9 @@ export function FileUpload({ onFileSelect }: { onFileSelect: (file: File) => voi
       <label htmlFor="file-input" className="text-sm text-blue-600 hover:underline cursor-pointer">
         파일 선택
       </label>
+      <p className="mt-2 text-xs text-gray-500">
+        지원 형식: .txt, .md, .pdf, .docx (구형 .doc는 .docx로 저장 후 업로드)
+      </p>
     </div>
   );
 }
