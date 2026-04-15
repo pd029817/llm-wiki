@@ -140,16 +140,50 @@ describe("IngestPage", () => {
     expect(textarea.value).toBe("");
   });
 
-  it("reads non-PDF files as plain text", async () => {
+  it("converts .txt uploads to markdown: setext headings, bullets, numbered sections", async () => {
     render(<IngestPage />);
     const input = document.getElementById("file-input") as HTMLInputElement;
-    const txtFile = new File(["plain text body"], "note.txt", { type: "text/plain" });
+    const body = [
+      "문서 제목",
+      "========",
+      "",
+      "소개 섹션",
+      "---------",
+      "",
+      "1. 첫 번째 조항",
+      "1.1 세부 항목",
+      "",
+      "- 항목 A",
+      "• 항목 B",
+      "",
+      "일반 문장입니다.",
+    ].join("\n");
+    const txtFile = new File([body], "note.txt", { type: "text/plain" });
     Object.defineProperty(input, "files", { value: [txtFile] });
     fireEvent.change(input);
 
     const textarea = screen.getByPlaceholderText(/문서 내용을 입력하세요/) as HTMLTextAreaElement;
     await waitFor(() => {
-      expect(textarea.value).toBe("plain text body");
+      expect(textarea.value).toContain("# 문서 제목");
+      expect(textarea.value).toContain("## 소개 섹션");
+      expect(textarea.value).toContain("## 1 첫 번째 조항");
+      expect(textarea.value).toContain("### 1.1 세부 항목");
+      expect(textarea.value).toContain("- 항목 A");
+      expect(textarea.value).toContain("- 항목 B");
+      expect(textarea.value).toContain("일반 문장입니다.");
+    });
+  });
+
+  it("keeps .md uploads as raw text without heuristics", async () => {
+    render(<IngestPage />);
+    const input = document.getElementById("file-input") as HTMLInputElement;
+    const mdFile = new File(["# 이미 마크다운\n\n본문"], "note.md", { type: "text/markdown" });
+    Object.defineProperty(input, "files", { value: [mdFile] });
+    fireEvent.change(input);
+
+    const textarea = screen.getByPlaceholderText(/문서 내용을 입력하세요/) as HTMLTextAreaElement;
+    await waitFor(() => {
+      expect(textarea.value).toBe("# 이미 마크다운\n\n본문");
     });
   });
 

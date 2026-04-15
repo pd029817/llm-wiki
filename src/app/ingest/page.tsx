@@ -77,6 +77,78 @@ export default function IngestPage() {
     return (value ?? "").replace(/\n{3,}/g, "\n\n").trim();
   };
 
+  const plainTextToMarkdown = (raw: string): string => {
+    const src = raw.replace(/\r\n?/g, "\n").replace(/\t/g, "  ");
+    const lines = src.split("\n");
+    const out: string[] = [];
+
+    const isUnderline = (s: string, ch: string) => s.length >= 3 && [...s.trim()].every((c) => c === ch);
+    const numberedHeading = /^\s*(\d+(?:\.\d+)+|\d+)[.)]?\s+(.+)$/;
+    const bulletLine = /^\s*[-*•·]\s+(.+)$/;
+    const numberedList = /^\s*\d+[.)]\s+(.+)$/;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const trimmed = line.trim();
+      const next = (lines[i + 1] ?? "").trim();
+
+      if (!trimmed) {
+        out.push("");
+        continue;
+      }
+
+      // Setext 스타일 밑줄 heading (===, ---)
+      if (next && isUnderline(next, "=")) {
+        out.push(`# ${trimmed}`);
+        i++;
+        continue;
+      }
+      if (next && isUnderline(next, "-") && trimmed.length > 0) {
+        out.push(`## ${trimmed}`);
+        i++;
+        continue;
+      }
+
+      // 번호 매긴 제목: "1. 제목", "1.2 제목"
+      const num = trimmed.match(numberedHeading);
+      if (num && num[2].length <= 80 && !/[.!?]$/.test(num[2])) {
+        const depth = Math.min(num[1].split(".").length, 4);
+        out.push(`${"#".repeat(depth + 1)} ${num[1]} ${num[2]}`);
+        continue;
+      }
+
+      // 불릿 리스트
+      const bullet = trimmed.match(bulletLine);
+      if (bullet) {
+        out.push(`- ${bullet[1]}`);
+        continue;
+      }
+
+      // 번호 리스트는 그대로 두되 정규화
+      const nlist = trimmed.match(numberedList);
+      if (nlist) {
+        out.push(trimmed.replace(/^\s*(\d+)[.)]\s+/, "$1. "));
+        continue;
+      }
+
+      // 짧고 마침표 없이 끝나는 줄을 전후 공백 줄과 함께 있으면 heading 승격
+      const prev = out[out.length - 1];
+      if (
+        trimmed.length <= 60 &&
+        !/[.!?。]$/.test(trimmed) &&
+        (prev === "" || prev === undefined) &&
+        (next === "" || i === lines.length - 1)
+      ) {
+        out.push(`## ${trimmed}`);
+        continue;
+      }
+
+      out.push(line.replace(/\s+$/, ""));
+    }
+
+    return out.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+  };
+
   const handleFileSelect = async (file: File) => {
     setError("");
     setTitle(file.name);
@@ -87,6 +159,10 @@ export default function IngestPage() {
         file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
         lower.endsWith(".docx");
       const isLegacyDoc = lower.endsWith(".doc") && !lower.endsWith(".docx");
+      const isMarkdown = lower.endsWith(".md") || file.type === "text/markdown";
+      const isPlainText =
+        !isPdf && !isDocx && !isLegacyDoc && !isMarkdown &&
+        (file.type.startsWith("text/") || lower.endsWith(".txt") || file.type === "");
 
       if (isLegacyDoc) {
         throw new Error(
@@ -98,6 +174,8 @@ export default function IngestPage() {
         ? await extractPdfText(file)
         : isDocx
         ? await extractDocxMarkdown(file)
+        : isPlainText
+        ? plainTextToMarkdown(await file.text())
         : await file.text();
       setContent(text);
     } catch (e: any) {
