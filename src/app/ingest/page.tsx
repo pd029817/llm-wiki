@@ -70,14 +70,35 @@ export default function IngestPage() {
     return pages.join("\n\n");
   };
 
+  const extractDocxMarkdown = async (file: File): Promise<string> => {
+    const mammoth: any = await import("mammoth/mammoth.browser");
+    const arrayBuffer = await file.arrayBuffer();
+    const { value } = await mammoth.convertToMarkdown({ arrayBuffer });
+    return (value ?? "").replace(/\n{3,}/g, "\n\n").trim();
+  };
+
   const handleFileSelect = async (file: File) => {
     setError("");
     setTitle(file.name);
     try {
-      const isPdf =
-        file.type === "application/pdf" ||
-        file.name.toLowerCase().endsWith(".pdf");
-      const text = isPdf ? await extractPdfText(file) : await file.text();
+      const lower = file.name.toLowerCase();
+      const isPdf = file.type === "application/pdf" || lower.endsWith(".pdf");
+      const isDocx =
+        file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+        lower.endsWith(".docx");
+      const isLegacyDoc = lower.endsWith(".doc") && !lower.endsWith(".docx");
+
+      if (isLegacyDoc) {
+        throw new Error(
+          "구형 .doc 형식은 지원하지 않습니다. Word에서 .docx로 저장한 뒤 다시 업로드해 주세요."
+        );
+      }
+
+      const text = isPdf
+        ? await extractPdfText(file)
+        : isDocx
+        ? await extractDocxMarkdown(file)
+        : await file.text();
       setContent(text);
     } catch (e: any) {
       setError(`파일 읽기 실패: ${e?.message ?? e}`);

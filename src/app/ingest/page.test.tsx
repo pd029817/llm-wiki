@@ -2,6 +2,13 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import IngestPage from "./page";
 
+vi.mock("mammoth/mammoth.browser", () => ({
+  default: {
+    convertToMarkdown: async () => ({ value: "# 제목\n\n본문 단락" }),
+  },
+  convertToMarkdown: async () => ({ value: "# 제목\n\n본문 단락" }),
+}));
+
 vi.mock("pdfjs-dist", () => ({
   version: "test",
   GlobalWorkerOptions: { workerSrc: "" },
@@ -98,6 +105,39 @@ describe("IngestPage", () => {
       expect(textarea.value).toContain("PDF 본문");
     });
     expect((screen.getByPlaceholderText("문서 제목") as HTMLInputElement).value).toBe("doc.pdf");
+  });
+
+  it("converts .docx uploads to markdown via mammoth", async () => {
+    render(<IngestPage />);
+    const input = document.getElementById("file-input") as HTMLInputElement;
+    const docxFile = new File([new Uint8Array([0x50, 0x4b, 0x03, 0x04])], "memo.docx", {
+      type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    });
+    Object.defineProperty(input, "files", { value: [docxFile] });
+    fireEvent.change(input);
+
+    const textarea = screen.getByPlaceholderText(/문서 내용을 입력하세요/) as HTMLTextAreaElement;
+    await waitFor(() => {
+      expect(textarea.value).toContain("# 제목");
+      expect(textarea.value).toContain("본문 단락");
+    });
+    expect((screen.getByPlaceholderText("문서 제목") as HTMLInputElement).value).toBe("memo.docx");
+  });
+
+  it("rejects legacy .doc uploads with a clear message", async () => {
+    render(<IngestPage />);
+    const input = document.getElementById("file-input") as HTMLInputElement;
+    const docFile = new File([new Uint8Array([0xd0, 0xcf, 0x11, 0xe0])], "old.doc", {
+      type: "application/msword",
+    });
+    Object.defineProperty(input, "files", { value: [docFile] });
+    fireEvent.change(input);
+
+    await waitFor(() => {
+      expect(screen.getByText(/구형 \.doc 형식/)).toBeInTheDocument();
+    });
+    const textarea = screen.getByPlaceholderText(/문서 내용을 입력하세요/) as HTMLTextAreaElement;
+    expect(textarea.value).toBe("");
   });
 
   it("reads non-PDF files as plain text", async () => {
