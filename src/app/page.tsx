@@ -90,7 +90,7 @@ export default async function Dashboard() {
           <p className="text-3xl font-bold text-blue-600">{sourceCount || 0}</p>
           <p className="text-xs text-gray-500 mt-1">7일 내 신규 {sourcesAdded7d || 0}건</p>
         </Link>
-        <Link href="/chat" className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+        <Link href="/query" className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
           <p className="text-sm text-gray-600">질의 세션</p>
           <p className="text-3xl font-bold text-blue-600">{chatCount || 0}</p>
           <p className="text-xs text-gray-500 mt-1">30일 변경 {changes30d || 0}건</p>
