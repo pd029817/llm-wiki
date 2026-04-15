@@ -36,6 +36,15 @@ export async function POST(request: NextRequest) {
     config as SchemaConfig
   );
 
+  await supabase.from("chat_sessions").insert({
+    session_type: "query",
+    messages: [
+      { role: "user", content: question },
+      { role: "assistant", content: answer },
+    ],
+    referenced_pages: relevantPages.map((p: WikiPage) => p.id),
+  });
+
   return NextResponse.json({
     answer,
     sources: relevantPages.map((p: WikiPage) => ({ title: p.title, slug: p.slug })),

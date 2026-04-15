@@ -31,6 +31,8 @@ export default async function Dashboard() {
     { count: pageCount },
     { count: sourceCount },
     { count: chatCount },
+    { count: queryCount },
+    { count: chatNew7d },
     { count: pagesUpdated7d },
     { count: sourcesAdded7d },
     { count: changes30d },
@@ -41,7 +43,9 @@ export default async function Dashboard() {
   ] = await Promise.all([
     supabase.from("wiki_pages").select("*", { count: "exact", head: true }),
     supabase.from("raw_sources").select("*", { count: "exact", head: true }),
-    supabase.from("chat_sessions").select("*", { count: "exact", head: true }),
+    supabase.from("chat_sessions").select("*", { count: "exact", head: true }).eq("session_type", "chat"),
+    supabase.from("chat_sessions").select("*", { count: "exact", head: true }).eq("session_type", "query"),
+    supabase.from("chat_sessions").select("*", { count: "exact", head: true }).eq("session_type", "chat").gte("created_at", since7d),
     supabase.from("wiki_pages").select("*", { count: "exact", head: true }).gte("updated_at", since7d),
     supabase.from("raw_sources").select("*", { count: "exact", head: true }).gte("created_at", since7d),
     supabase.from("change_log").select("*", { count: "exact", head: true }).gte("created_at", since30d),
@@ -79,7 +83,7 @@ export default async function Dashboard() {
     <div>
       <h1 className="text-2xl font-bold mb-6">대시보드</h1>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
         <Link href="/wiki" className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
           <p className="text-sm text-gray-600">위키 페이지</p>
           <p className="text-3xl font-bold text-blue-600">{pageCount || 0}</p>
@@ -92,8 +96,13 @@ export default async function Dashboard() {
         </Link>
         <Link href="/query" className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
           <p className="text-sm text-gray-600">질의 세션</p>
+          <p className="text-3xl font-bold text-blue-600">{queryCount || 0}</p>
+          <p className="text-xs text-gray-500 mt-1">단발 질의</p>
+        </Link>
+        <Link href="/chat" className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+          <p className="text-sm text-gray-600">챗봇 세션</p>
           <p className="text-3xl font-bold text-blue-600">{chatCount || 0}</p>
-          <p className="text-xs text-gray-500 mt-1">30일 변경 {changes30d || 0}건</p>
+          <p className="text-xs text-gray-500 mt-1">7일 신규 {chatNew7d || 0}건</p>
         </Link>
         <Link href="/lint" className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
           <p className="text-sm text-gray-600">Lint 이슈</p>

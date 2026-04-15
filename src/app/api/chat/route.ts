@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
   } else {
     const { data: session } = await supabase
       .from("chat_sessions")
-      .insert({ messages: updatedMessages, referenced_pages: referencedPages })
+      .insert({ session_type: "chat", messages: updatedMessages, referenced_pages: referencedPages })
       .select("id")
       .single();
     newSessionId = session?.id;
