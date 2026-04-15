@@ -45,7 +45,7 @@ export default function WikiBrowser() {
                     href={`/wiki/${page.slug}`}
                     className="block px-4 py-3 hover:bg-gray-50"
                   >
-                    <span className="text-sm font-medium">{page.title}</span>
+                    <span className="text-sm font-medium text-blue-600 hover:underline">{page.title}</span>
                     <span className="text-xs text-gray-500 ml-2">v{page.version}</span>
                   </Link>
                 ))}
@@ -62,7 +62,7 @@ export default function WikiBrowser() {
                     href={`/wiki/${page.slug}`}
                     className="block px-4 py-3 hover:bg-gray-50"
                   >
-                    <span className="text-sm font-medium">{page.title}</span>
+                    <span className="text-sm font-medium text-blue-600 hover:underline">{page.title}</span>
                     <span className="text-xs text-gray-500 ml-2">v{page.version}</span>
                   </Link>
                 ))}
