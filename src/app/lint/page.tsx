@@ -105,7 +105,25 @@ export default function LintPage() {
         setProposals((p) => ({ ...p, [i]: data }));
         setEditedContent((e) => ({ ...e, [i]: data.proposed_content }));
       } else {
-        setModalMessage(`수정 제안 실패 (${res.status}): ${data.error || "알 수 없는 오류"}`);
+        setModalMessage(`수정 제안 실패 (${res.status}): ${data.error || "알 수 없는 오류"}\n\n편집 화면에서 직접 수정해 주세요.`);
+        try {
+          const pageRes = await fetch(`/api/wiki/${encodeURIComponent(issue.page_slug)}`);
+          if (pageRes.ok) {
+            const page = await pageRes.json();
+            const fallback: FixProposal = {
+              slug: page.slug,
+              title: page.title,
+              category: page.category,
+              original_content: page.content,
+              proposed_content: page.content,
+            };
+            setProposals((p) => ({ ...p, [i]: fallback }));
+            setEditedContent((e) => ({ ...e, [i]: page.content }));
+            setEditMode((m) => ({ ...m, [i]: true }));
+          }
+        } catch {
+          // modal 메시지만 남기고 종료
+        }
       }
     } catch (e) {
       setModalMessage(`수정 제안 요청 실패: ${e instanceof Error ? e.message : String(e)}`);
