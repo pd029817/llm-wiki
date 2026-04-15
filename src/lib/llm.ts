@@ -73,7 +73,20 @@ export async function runLint(
   const text = await complete(system, `검토 대상 위키 페이지:\n${context}`);
   const jsonMatch = text.match(/\[[\s\S]*\]/);
   if (!jsonMatch) return [];
-  return JSON.parse(jsonMatch[0]);
+  try {
+    return JSON.parse(jsonMatch[0]);
+  } catch {
+    const items: { page_slug: string; issue_type: string; description: string; suggestion: string }[] = [];
+    const objectRegex = /\{[^{}]*\}/g;
+    const matches = jsonMatch[0].match(objectRegex) || [];
+    for (const m of matches) {
+      try {
+        const obj = JSON.parse(m);
+        if (obj.page_slug && obj.issue_type) items.push(obj);
+      } catch {}
+    }
+    return items;
+  }
 }
 
 export async function runChat(

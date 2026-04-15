@@ -37,10 +37,16 @@ export default function LintPage() {
 
   const handleLint = async () => {
     setLoading(true);
-    const res = await fetch("/api/lint", { method: "POST" });
-    const data = await res.json();
-    setIssues(data.issues || []);
-    setTotalPages(data.total_pages || 0);
+    try {
+      const res = await fetch("/api/lint", { method: "POST" });
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : {};
+      setIssues(data.issues || []);
+      setTotalPages(data.total_pages || 0);
+      if (data.error) alert(data.error);
+    } catch (e) {
+      alert(`Lint 요청 실패: ${e instanceof Error ? e.message : String(e)}`);
+    }
     setHasRun(true);
     setLoading(false);
     setProposals({});

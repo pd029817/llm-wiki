@@ -20,12 +20,19 @@ export async function POST() {
     .limit(1)
     .single();
 
-  const issues = await runLint(
-    pages as WikiPage[],
-    config as SchemaConfig
-  );
-
-  return NextResponse.json({ issues, total_pages: pages.length });
+  try {
+    const issues = await runLint(
+      pages as WikiPage[],
+      config as SchemaConfig
+    );
+    return NextResponse.json({ issues, total_pages: pages.length });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json(
+      { issues: [], total_pages: pages.length, error: `Lint 실행 중 오류: ${message}` },
+      { status: 200 }
+    );
+  }
 }
 
 export const maxDuration = 60;
