@@ -23,14 +23,14 @@ export default async function Dashboard() {
       <h1 className="text-2xl font-bold mb-6">대시보드</h1>
 
       <div className="grid grid-cols-3 gap-4 mb-8">
-        <div className="bg-white rounded-lg p-4 shadow-sm">
+        <Link href="/wiki" className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
           <p className="text-sm text-gray-600">위키 페이지</p>
-          <p className="text-3xl font-bold text-gray-900">{pageCount || 0}</p>
-        </div>
-        <div className="bg-white rounded-lg p-4 shadow-sm">
+          <p className="text-3xl font-bold text-blue-600">{pageCount || 0}</p>
+        </Link>
+        <Link href="/ingest" className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
           <p className="text-sm text-gray-600">원본 소스</p>
-          <p className="text-3xl font-bold text-gray-900">{sourceCount || 0}</p>
-        </div>
+          <p className="text-3xl font-bold text-blue-600">{sourceCount || 0}</p>
+        </Link>
         <div className="bg-white rounded-lg p-4 shadow-sm">
           <p className="text-sm text-gray-600">빠른 작업</p>
           <div className="flex gap-2 mt-1">

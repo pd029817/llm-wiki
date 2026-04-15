@@ -30,13 +30,44 @@ export default function IngestPage() {
     pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
     const buf = await file.arrayBuffer();
     const pdf = await pdfjs.getDocument({ data: buf }).promise;
-    const parts: string[] = [];
+    const pages: string[] = [];
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
       const tc = await page.getTextContent();
-      parts.push(tc.items.map((it: any) => it.str ?? "").join(" "));
+
+      // y좌표(transform[5])로 같은 줄에 속한 아이템을 그룹핑
+      const lineMap = new Map<number, { x: number; str: string }[]>();
+      for (const it of tc.items as any[]) {
+        const str = it.str ?? "";
+        if (!str) continue;
+        const y = Math.round(it.transform?.[5] ?? 0);
+        const x = it.transform?.[4] ?? 0;
+        if (!lineMap.has(y)) lineMap.set(y, []);
+        lineMap.get(y)!.push({ x, str });
+      }
+
+      const ys = [...lineMap.keys()].sort((a, b) => b - a); // 위→아래
+      const lines: { y: number; text: string }[] = [];
+      for (const y of ys) {
+        const items = lineMap.get(y)!.sort((a, b) => a.x - b.x);
+        const text = items.map((t) => t.str).join(" ").replace(/\s+/g, " ").trim();
+        if (text) lines.push({ y, text });
+      }
+
+      // 줄 간격이 크면 빈 줄(단락 구분)을 삽입
+      const gaps = lines.slice(1).map((l, i) => lines[i].y - l.y).filter((g) => g > 0);
+      const median = gaps.length ? [...gaps].sort((a, b) => a - b)[Math.floor(gaps.length / 2)] : 0;
+      const pageLines: string[] = [];
+      for (let k = 0; k < lines.length; k++) {
+        pageLines.push(lines[k].text);
+        if (k < lines.length - 1) {
+          const gap = lines[k].y - lines[k + 1].y;
+          if (median > 0 && gap > median * 1.6) pageLines.push("");
+        }
+      }
+      pages.push(pageLines.join("\n"));
     }
-    return parts.join("\n\n");
+    return pages.join("\n\n");
   };
 
   const handleFileSelect = async (file: File) => {
