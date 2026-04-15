@@ -41,7 +41,129 @@ function formatLine(line: string): string {
   return trimmed;
 }
 
+function tryParseJson(input: string): unknown | undefined {
+  const trimmed = input.trim();
+  if (!trimmed) return undefined;
+  const first = trimmed[0];
+  const last = trimmed[trimmed.length - 1];
+  const looksLikeJson =
+    (first === "{" && last === "}") || (first === "[" && last === "]");
+  if (!looksLikeJson) return undefined;
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return undefined;
+  }
+}
+
+function isPrimitive(v: unknown): v is string | number | boolean | null {
+  return (
+    v === null ||
+    typeof v === "string" ||
+    typeof v === "number" ||
+    typeof v === "boolean"
+  );
+}
+
+function formatPrimitive(v: string | number | boolean | null): string {
+  if (v === null) return "_null_";
+  if (typeof v === "string") return v.trim() === "" ? '""' : v;
+  return String(v);
+}
+
+function isFlatObjectArray(arr: unknown[]): arr is Record<string, unknown>[] {
+  if (arr.length === 0) return false;
+  return arr.every(
+    (el) =>
+      el !== null &&
+      typeof el === "object" &&
+      !Array.isArray(el) &&
+      Object.values(el as Record<string, unknown>).every(isPrimitive),
+  );
+}
+
+function renderJsonTable(rows: Record<string, unknown>[]): string {
+  const keys: string[] = [];
+  for (const row of rows) {
+    for (const k of Object.keys(row)) if (!keys.includes(k)) keys.push(k);
+  }
+  const header = `| ${keys.join(" | ")} |`;
+  const sep = `| ${keys.map(() => "---").join(" | ")} |`;
+  const body = rows
+    .map(
+      (row) =>
+        `| ${keys
+          .map((k) => {
+            const v = row[k];
+            if (v === undefined) return "";
+            if (!isPrimitive(v)) return "`" + JSON.stringify(v) + "`";
+            return formatPrimitive(v).replace(/\|/g, "\\|").replace(/\n/g, " ");
+          })
+          .join(" | ")} |`,
+    )
+    .join("\n");
+  return [header, sep, body].join("\n");
+}
+
+function renderJson(value: unknown, depth = 0): string {
+  const indent = "  ".repeat(depth);
+  if (isPrimitive(value)) return `${indent}${formatPrimitive(value)}`;
+
+  if (Array.isArray(value)) {
+    if (value.length === 0) return `${indent}_(빈 배열)_`;
+    if (value.every(isPrimitive)) {
+      return value.map((v) => `${indent}- ${formatPrimitive(v as any)}`).join("\n");
+    }
+    if (depth === 0 && isFlatObjectArray(value)) {
+      return renderJsonTable(value);
+    }
+    return value
+      .map((v, i) => {
+        if (isPrimitive(v)) return `${indent}- ${formatPrimitive(v)}`;
+        return `${indent}- **[${i}]**\n${renderJson(v, depth + 1)}`;
+      })
+      .join("\n");
+  }
+
+  if (typeof value === "object" && value !== null) {
+    const entries = Object.entries(value as Record<string, unknown>);
+    if (entries.length === 0) return `${indent}_(빈 객체)_`;
+    return entries
+      .map(([k, v]) => {
+        if (isPrimitive(v)) return `${indent}- **${k}**: ${formatPrimitive(v)}`;
+        if (Array.isArray(v) && v.every(isPrimitive)) {
+          if (v.length === 0) return `${indent}- **${k}**: _(빈 배열)_`;
+          return `${indent}- **${k}**:\n${v
+            .map((x) => `${indent}  - ${formatPrimitive(x as any)}`)
+            .join("\n")}`;
+        }
+        return `${indent}- **${k}**:\n${renderJson(v, depth + 1)}`;
+      })
+      .join("\n");
+  }
+
+  return `${indent}${String(value)}`;
+}
+
+function jsonToMarkdown(title: string, parsed: unknown, original: string): string {
+  const rendered = renderJson(parsed);
+  const raw = JSON.stringify(parsed, null, 2);
+  return (
+    `# ${title}\n\n` +
+    `${rendered}\n\n` +
+    `<details>\n<summary>원본 JSON</summary>\n\n` +
+    "```json\n" +
+    `${raw}\n` +
+    "```\n\n</details>\n"
+  );
+}
+
 function toMarkdown(title: string, content: string): string {
+  const parsed = tryParseJson(content);
+  if (parsed !== undefined && typeof parsed === "object" && parsed !== null) {
+    return jsonToMarkdown(title, parsed, content);
+  }
+
   const normalized = content
     .replace(/\r\n/g, "\n")
     .replace(/[ \t]+\n/g, "\n")
