@@ -69,7 +69,11 @@ export async function runLint(
   config: SchemaConfig
 ): Promise<{ page_slug: string; issue_type: string; description: string; suggestion: string }[]> {
   const system = buildSystemPrompt(config, "lint");
-  const context = formatWikiContext(pages);
+  const truncated = pages.map((p) => ({
+    ...p,
+    content: p.content.length > 300 ? p.content.slice(0, 300) + "...(생략)" : p.content,
+  }));
+  const context = formatWikiContext(truncated as WikiPage[]);
   const text = await complete(system, `검토 대상 위키 페이지:\n${context}`);
   const jsonMatch = text.match(/\[[\s\S]*\]/);
   if (!jsonMatch) return [];
