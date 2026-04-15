@@ -12,10 +12,21 @@ interface LintIssue {
 
 function extractLinks(suggestion: string): { title: string; slug: string }[] {
   const links: { title: string; slug: string }[] = [];
-  const re = /\[([^\]]+)\]\(\/wiki\/([^)\s]+)\)/g;
+  const seen = new Set<string>();
+  const mdRe = /\[([^\]]+)\]\(\/wiki\/([^)\s]+)\)/g;
   let m: RegExpExecArray | null;
-  while ((m = re.exec(suggestion)) !== null) {
-    links.push({ title: m[1].trim(), slug: decodeURIComponent(m[2].trim()) });
+  while ((m = mdRe.exec(suggestion)) !== null) {
+    const slug = decodeURIComponent(m[2].trim());
+    if (seen.has(slug)) continue;
+    seen.add(slug);
+    links.push({ title: m[1].trim(), slug });
+  }
+  const wikiRe = /\[\[([^\]|]+?)(?:\|([^\]]+))?\]\]/g;
+  while ((m = wikiRe.exec(suggestion)) !== null) {
+    const slug = m[1].trim();
+    if (seen.has(slug)) continue;
+    seen.add(slug);
+    links.push({ title: (m[2] ?? slug).trim(), slug });
   }
   return links;
 }
