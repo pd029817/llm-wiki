@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { promises as fs } from "fs";
 import path from "path";
+import RecentChangesTabs, { type RecentChange } from "./RecentChangesTabs";
 
 type LintIssue = { page_slug: string; issue_type: string; description: string; suggestion: string };
 type LintReport = { generated_at: string; total_pages: number; issues: LintIssue[] };
@@ -47,9 +48,9 @@ export default async function Dashboard() {
     supabase.from("change_log").select("*", { count: "exact", head: true }).gte("created_at", since30d),
     supabase
       .from("change_log")
-      .select("*, wiki_pages(title, slug)")
+      .select("*, wiki_pages(title, slug, category)")
       .order("created_at", { ascending: false })
-      .limit(8),
+      .limit(40),
     supabase
       .from("wiki_pages")
       .select("title, slug, version, updated_at")
@@ -183,34 +184,16 @@ export default async function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-white rounded-lg shadow-sm">
-          <div className="px-4 py-3 border-b flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-gray-700">최근 변경</h2>
-            <Link href="/changelog" className="text-xs text-blue-600 hover:underline">전체 →</Link>
-          </div>
-          {recentChanges && recentChanges.length > 0 ? (
-            <ul className="divide-y">
-              {recentChanges.map((log) => (
-                <li key={log.id} className="px-4 py-3 flex justify-between items-center gap-3">
-                  <div className="min-w-0">
-                    <Link
-                      href={`/wiki/${(log as any).wiki_pages?.slug}`}
-                      className="text-sm font-medium text-blue-600 hover:underline truncate block"
-                    >
-                      {(log as any).wiki_pages?.title}
-                    </Link>
-                    <p className="text-xs text-gray-600 truncate">{log.summary}</p>
-                  </div>
-                  <span className="text-xs text-gray-500 shrink-0">
-                    {new Date(log.created_at).toLocaleDateString("ko-KR")}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="px-4 py-6 text-sm text-gray-500 text-center">변경 이력이 없습니다.</p>
-          )}
-        </div>
+        <RecentChangesTabs
+          changes={((recentChanges || []) as any[]).map<RecentChange>((log) => ({
+            id: log.id,
+            created_at: log.created_at,
+            summary: log.summary,
+            category: log.wiki_pages?.category || "미분류",
+            page_title: log.wiki_pages?.title ?? null,
+            page_slug: log.wiki_pages?.slug ?? null,
+          }))}
+        />
 
         <div className="bg-white rounded-lg shadow-sm">
           <div className="px-4 py-3 border-b flex items-center justify-between">
