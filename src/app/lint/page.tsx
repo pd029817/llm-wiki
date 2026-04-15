@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { diffLines } from "diff";
 
 interface LintIssue {
   page_slug: string;
@@ -15,6 +16,27 @@ interface FixProposal {
   category: string;
   original_content: string;
   proposed_content: string;
+}
+
+function renderDiffLines(original: string, modified: string, side: "left" | "right") {
+  const parts = diffLines(original, modified);
+  const keep = side === "left" ? (p: { added?: boolean }) => !p.added : (p: { removed?: boolean }) => !p.removed;
+  const changedClass = side === "left"
+    ? "bg-red-100 text-red-900"
+    : "bg-green-100 text-green-900";
+  return parts.filter(keep).map((p, idx) => {
+    const changed = side === "left" ? p.removed : p.added;
+    const lines = p.value.split("\n");
+    if (lines[lines.length - 1] === "") lines.pop();
+    return lines.map((ln, j) => (
+      <div
+        key={`${idx}-${j}`}
+        className={changed ? `${changedClass} whitespace-pre-wrap` : "whitespace-pre-wrap text-gray-800"}
+      >
+        {ln || "\u00A0"}
+      </div>
+    ));
+  });
 }
 
 const issueTypeLabels: Record<string, { label: string; color: string }> = {
@@ -34,6 +56,7 @@ export default function LintPage() {
   const [applyingIndex, setApplyingIndex] = useState<number | null>(null);
   const [appliedIndexes, setAppliedIndexes] = useState<Set<number>>(new Set());
   const [editedContent, setEditedContent] = useState<Record<number, string>>({});
+  const [editMode, setEditMode] = useState<Record<number, boolean>>({});
 
   const handleLint = async () => {
     setLoading(true);
@@ -163,18 +186,36 @@ export default function LintPage() {
                   <div className="mt-3 border-t pt-3">
                     <div className="grid grid-cols-2 gap-3 mb-3">
                       <div>
-                        <h3 className="text-xs font-semibold text-gray-600 mb-1">원본</h3>
-                        <pre className="text-xs bg-gray-50 border rounded p-2 h-48 overflow-auto whitespace-pre-wrap text-gray-800">
-                          {proposal.original_content}
-                        </pre>
+                        <h3 className="text-xs font-semibold text-gray-600 mb-1">
+                          원본 <span className="text-red-700 font-normal">(빨강: 삭제된 부분)</span>
+                        </h3>
+                        <div className="text-xs bg-gray-50 border rounded p-2 h-64 overflow-auto font-mono leading-5">
+                          {renderDiffLines(proposal.original_content, editedContent[i] ?? proposal.proposed_content, "left")}
+                        </div>
                       </div>
                       <div>
-                        <h3 className="text-xs font-semibold text-gray-600 mb-1">수정 제안 (편집 가능)</h3>
-                        <textarea
-                          value={editedContent[i] ?? proposal.proposed_content}
-                          onChange={(e) => setEditedContent((prev) => ({ ...prev, [i]: e.target.value }))}
-                          className="w-full text-xs border rounded p-2 h-48 font-mono text-gray-900"
-                        />
+                        <div className="flex items-center justify-between mb-1">
+                          <h3 className="text-xs font-semibold text-gray-600">
+                            수정 제안 <span className="text-green-700 font-normal">(초록: 추가된 부분)</span>
+                          </h3>
+                          <button
+                            onClick={() => setEditMode((m) => ({ ...m, [i]: !m[i] }))}
+                            className="text-xs text-blue-600 hover:underline"
+                          >
+                            {editMode[i] ? "Diff 보기" : "편집"}
+                          </button>
+                        </div>
+                        {editMode[i] ? (
+                          <textarea
+                            value={editedContent[i] ?? proposal.proposed_content}
+                            onChange={(e) => setEditedContent((prev) => ({ ...prev, [i]: e.target.value }))}
+                            className="w-full text-xs border rounded p-2 h-64 font-mono text-gray-900"
+                          />
+                        ) : (
+                          <div className="text-xs bg-gray-50 border rounded p-2 h-64 overflow-auto font-mono leading-5">
+                            {renderDiffLines(proposal.original_content, editedContent[i] ?? proposal.proposed_content, "right")}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="flex gap-2 justify-end">
