@@ -57,6 +57,7 @@ export default function LintPage() {
   const [appliedIndexes, setAppliedIndexes] = useState<Set<number>>(new Set());
   const [editedContent, setEditedContent] = useState<Record<number, string>>({});
   const [editMode, setEditMode] = useState<Record<number, boolean>>({});
+  const [dismissedIndexes, setDismissedIndexes] = useState<Set<number>>(new Set());
 
   const handleLint = async () => {
     setLoading(true);
@@ -75,6 +76,16 @@ export default function LintPage() {
     setProposals({});
     setAppliedIndexes(new Set());
     setEditedContent({});
+    setDismissedIndexes(new Set());
+  };
+
+  const handleKeepOriginal = (i: number) => {
+    setDismissedIndexes((s) => new Set(s).add(i));
+    setProposals((p) => {
+      const n = { ...p };
+      delete n[i];
+      return n;
+    });
   };
 
   const handleProposeFix = async (i: number, issue: LintIssue) => {
@@ -154,6 +165,7 @@ export default function LintPage() {
             const typeInfo = issueTypeLabels[issue.issue_type] || { label: issue.issue_type, color: "bg-gray-100 text-gray-700" };
             const proposal = proposals[i];
             const applied = appliedIndexes.has(i);
+            const dismissed = dismissedIndexes.has(i);
 
             return (
               <div key={i} className="px-4 py-4">
@@ -165,17 +177,29 @@ export default function LintPage() {
                     {issue.page_slug}
                   </a>
                   <div className="ml-auto flex gap-2">
-                    {!proposal && !applied && (
-                      <button
-                        onClick={() => handleProposeFix(i, issue)}
-                        disabled={fixingIndex === i}
-                        className="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 disabled:opacity-50"
-                      >
-                        {fixingIndex === i ? "생성 중..." : "수정 제안"}
-                      </button>
+                    {!proposal && !applied && !dismissed && (
+                      <>
+                        <button
+                          onClick={() => handleProposeFix(i, issue)}
+                          disabled={fixingIndex === i}
+                          className="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 disabled:opacity-50"
+                        >
+                          {fixingIndex === i ? "생성 중..." : "수정 제안"}
+                        </button>
+                        <button
+                          onClick={() => handleKeepOriginal(i)}
+                          className="text-xs border border-gray-300 text-gray-700 px-3 py-1 rounded hover:bg-gray-50"
+                          title="이 이슈를 무시하고 원본을 그대로 유지합니다"
+                        >
+                          원본 유지
+                        </button>
+                      </>
                     )}
                     {applied && (
                       <span className="text-xs text-green-700 font-medium">✓ 적용됨</span>
+                    )}
+                    {dismissed && (
+                      <span className="text-xs text-gray-500 font-medium">— 원본 유지</span>
                     )}
                   </div>
                 </div>
@@ -218,7 +242,16 @@ export default function LintPage() {
                         )}
                       </div>
                     </div>
-                    <div className="flex gap-2 justify-end">
+                    <div className="flex gap-2 justify-end items-center">
+                      <span className="text-xs text-gray-500 mr-auto">
+                        💡 제안이 틀렸다면 [원본 유지]로 이슈를 무시하거나, [편집]으로 일부만 수정하세요
+                      </span>
+                      <button
+                        onClick={() => handleKeepOriginal(i)}
+                        className="text-xs bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-800"
+                      >
+                        원본 유지
+                      </button>
                       <button
                         onClick={() => handleDiscard(i)}
                         className="text-xs border border-gray-300 text-gray-700 px-3 py-1 rounded hover:bg-gray-50"
