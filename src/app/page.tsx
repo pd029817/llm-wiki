@@ -36,7 +36,6 @@ export default async function Dashboard() {
     { count: changes30d },
     { data: recentChanges },
     { data: topPages },
-    { data: staleCandidates },
     { data: categoryRows },
     lintReport,
   ] = await Promise.all([
@@ -55,11 +54,6 @@ export default async function Dashboard() {
       .from("wiki_pages")
       .select("title, slug, version, updated_at")
       .order("version", { ascending: false })
-      .limit(5),
-    supabase
-      .from("wiki_pages")
-      .select("title, slug, updated_at")
-      .order("updated_at", { ascending: true })
       .limit(5),
     supabase.from("wiki_pages").select("category"),
     loadLintReport(),
@@ -183,44 +177,16 @@ export default async function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <RecentChangesTabs
-          changes={((recentChanges || []) as any[]).map<RecentChange>((log) => ({
-            id: log.id,
-            created_at: log.created_at,
-            summary: log.summary,
-            category: log.wiki_pages?.category || "미분류",
-            page_title: log.wiki_pages?.title ?? null,
-            page_slug: log.wiki_pages?.slug ?? null,
-          }))}
-        />
-
-        <div className="bg-white rounded-lg shadow-sm">
-          <div className="px-4 py-3 border-b flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-gray-700">업데이트 필요 (오래된 페이지)</h2>
-            <Link href="/wiki" className="text-xs text-blue-600 hover:underline">전체 →</Link>
-          </div>
-          {staleCandidates && staleCandidates.length > 0 ? (
-            <ul className="divide-y">
-              {staleCandidates.map((p: any) => (
-                <li key={p.slug} className="px-4 py-3 flex justify-between items-center gap-3">
-                  <Link
-                    href={`/wiki/${p.slug}`}
-                    className="text-sm font-medium text-blue-600 hover:underline truncate"
-                  >
-                    {p.title}
-                  </Link>
-                  <span className="text-xs text-gray-500 shrink-0">
-                    {daysAgo(p.updated_at)}일 전
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="px-4 py-6 text-sm text-gray-500 text-center">페이지가 없습니다.</p>
-          )}
-        </div>
-      </div>
+      <RecentChangesTabs
+        changes={((recentChanges || []) as any[]).map<RecentChange>((log) => ({
+          id: log.id,
+          created_at: log.created_at,
+          summary: log.summary,
+          category: log.wiki_pages?.category || "미분류",
+          page_title: log.wiki_pages?.title ?? null,
+          page_slug: log.wiki_pages?.slug ?? null,
+        }))}
+      />
     </div>
   );
 }
