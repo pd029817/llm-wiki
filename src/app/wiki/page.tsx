@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { SearchBar } from "@/components/search-bar";
 import { WikiPage } from "@/lib/types";
@@ -20,7 +20,24 @@ export default function WikiBrowser() {
 
   useEffect(() => { fetchPages(); }, []);
 
-  const categories = [...new Set(pages.map((p) => p.category).filter(Boolean))];
+  const { categories, grouped, uncategorized } = useMemo(() => {
+    const groups = new Map<string, WikiPage[]>();
+    const uncat: WikiPage[] = [];
+    for (const p of pages) {
+      if (p.category) {
+        const list = groups.get(p.category);
+        if (list) list.push(p);
+        else groups.set(p.category, [p]);
+      } else {
+        uncat.push(p);
+      }
+    }
+    return {
+      categories: Array.from(groups.keys()),
+      grouped: groups,
+      uncategorized: uncat,
+    };
+  }, [pages]);
 
   return (
     <div>
@@ -39,7 +56,7 @@ export default function WikiBrowser() {
             <div key={cat} className="mb-6">
               <h2 className="text-sm font-semibold text-gray-600 uppercase mb-2">{cat}</h2>
               <div className="bg-white rounded-lg shadow-sm divide-y">
-                {pages.filter((p) => p.category === cat).map((page) => (
+                {grouped.get(cat)!.map((page) => (
                   <Link
                     key={page.id}
                     href={`/wiki/${page.slug}`}
@@ -52,11 +69,11 @@ export default function WikiBrowser() {
               </div>
             </div>
           ))}
-          {pages.filter((p) => !p.category).length > 0 && (
+          {uncategorized.length > 0 && (
             <div className="mb-6">
               <h2 className="text-sm font-semibold text-gray-600 uppercase mb-2">미분류</h2>
               <div className="bg-white rounded-lg shadow-sm divide-y">
-                {pages.filter((p) => !p.category).map((page) => (
+                {uncategorized.map((page) => (
                   <Link
                     key={page.id}
                     href={`/wiki/${page.slug}`}
