@@ -1,14 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FileUpload } from "@/components/file-upload";
 
 export default function IngestPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [category, setCategory] = useState("");
+  const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any[]>([]);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/settings");
+        if (!res.ok) return;
+        const data = await res.json().catch(() => ({}));
+        if (Array.isArray(data?.categories)) setCategories(data.categories);
+      } catch {
+        // ignore — 카테고리 로드 실패해도 업로드는 진행
+      }
+    })();
+  }, []);
 
   const extractPdfText = async (file: File): Promise<string> => {
     const pdfjs = await import("pdfjs-dist");
@@ -61,7 +76,7 @@ export default function IngestPage() {
       const ingestRes = await fetch("/api/ingest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ source_id: source.id }),
+        body: JSON.stringify({ source_id: source.id, category: category || null }),
       });
       const ingestData = await ingestRes.json().catch(() => ({}));
 
@@ -71,6 +86,7 @@ export default function IngestPage() {
         setResults(ingestData.results || []);
         setTitle("");
         setContent("");
+        setCategory("");
       }
     } catch (e: any) {
       setError(e?.message || "Ingest 실패");
@@ -95,6 +111,23 @@ export default function IngestPage() {
             className="w-full border rounded px-3 py-2 text-sm text-gray-900"
             placeholder="문서 제목"
           />
+        </div>
+
+        <div className="mt-4">
+          <label htmlFor="category" className="block text-sm font-medium mb-1">카테고리</label>
+          <select
+            id="category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="w-full border rounded px-3 py-2 text-sm text-gray-900"
+          >
+            <option value="">카테고리 없음</option>
+            {categories.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="mt-4">

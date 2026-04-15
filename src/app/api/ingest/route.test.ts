@@ -167,6 +167,74 @@ describe("POST /api/ingest", () => {
     expect(logs[0].page_id).toBe("page-1");
   });
 
+  it("persists the provided category when creating a new page", async () => {
+    supabaseRef.current = makeSupabase({
+      sources: [{ id: "src-cat", title: "근로계약.txt", content: "본문" }],
+      pages: [],
+    });
+    const { POST } = await import("./route");
+    const res = await POST(postRequest({ source_id: "src-cat", category: "인사" }));
+    expect(res.status).toBe(200);
+    const page = supabaseRef.current!._state.wiki_pages[0];
+    expect(page.category).toBe("인사");
+  });
+
+  it("trims whitespace-only category to null", async () => {
+    supabaseRef.current = makeSupabase({
+      sources: [{ id: "src-blank", title: "t.txt", content: "c" }],
+      pages: [],
+    });
+    const { POST } = await import("./route");
+    const res = await POST(postRequest({ source_id: "src-blank", category: "   " }));
+    expect(res.status).toBe(200);
+    const page = supabaseRef.current!._state.wiki_pages[0];
+    expect(page.category).toBeNull();
+  });
+
+  it("overwrites category on existing page when a new one is supplied", async () => {
+    supabaseRef.current = makeSupabase({
+      sources: [{ id: "src-u", title: "문서", content: "새 본문" }],
+      pages: [
+        {
+          id: "page-u",
+          slug: "문서",
+          title: "문서",
+          content: "old",
+          version: 1,
+          source_ids: ["src-old"],
+          category: "기존",
+        },
+      ],
+    });
+    const { POST } = await import("./route");
+    const res = await POST(postRequest({ source_id: "src-u", category: "회계" }));
+    expect(res.status).toBe(200);
+    const page = supabaseRef.current!._state.wiki_pages[0];
+    expect(page.category).toBe("회계");
+  });
+
+  it("keeps existing category on update when request omits category", async () => {
+    supabaseRef.current = makeSupabase({
+      sources: [{ id: "src-k", title: "문서", content: "새 본문" }],
+      pages: [
+        {
+          id: "page-k",
+          slug: "문서",
+          title: "문서",
+          content: "old",
+          version: 1,
+          source_ids: ["src-old"],
+          category: "기존",
+        },
+      ],
+    });
+    const { POST } = await import("./route");
+    const res = await POST(postRequest({ source_id: "src-k" }));
+    expect(res.status).toBe(200);
+    const page = supabaseRef.current!._state.wiki_pages[0];
+    expect(page.category).toBe("기존");
+  });
+
   it("does not call any external LLM provider", async () => {
     const groqSpy = vi.fn();
     vi.doMock("groq-sdk", () => ({ default: class { chat = { completions: { create: groqSpy } }; } }));

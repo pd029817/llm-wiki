@@ -37,7 +37,9 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
     const body = await request.json();
-    const { source_id } = body;
+    const { source_id, category } = body;
+    const normalizedCategory =
+      typeof category === "string" && category.trim() ? category.trim() : null;
 
     const { data: source, error: sourceError } = await supabase
       .from("raw_sources")
@@ -63,14 +65,16 @@ export async function POST(request: NextRequest) {
 
     if (existing) {
       const updatedSourceIds = [...new Set([...(existing.source_ids || []), source_id])];
+      const updatePayload: Record<string, unknown> = {
+        content: markdown,
+        source_ids: updatedSourceIds,
+        version: (existing.version || 0) + 1,
+        updated_at: new Date().toISOString(),
+      };
+      if (normalizedCategory) updatePayload.category = normalizedCategory;
       const { data: updated, error: updateError } = await supabase
         .from("wiki_pages")
-        .update({
-          content: markdown,
-          source_ids: updatedSourceIds,
-          version: (existing.version || 0) + 1,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updatePayload)
         .eq("slug", slug)
         .select()
         .single();
@@ -93,7 +97,7 @@ export async function POST(request: NextRequest) {
           title: rawTitle,
           slug,
           content: markdown,
-          category: null,
+          category: normalizedCategory,
           source_ids: [source_id],
         })
         .select()

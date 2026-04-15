@@ -21,20 +21,25 @@ vi.mock("pdfjs-dist", () => ({
   }),
 }));
 
-type FetchMock = ReturnType<typeof vi.fn>;
+let fetchCalls: Array<{ url: string; init?: RequestInit }> = [];
+let queuedNonSettings: Array<{ ok?: boolean; body: unknown }> = [];
 
 beforeEach(() => {
-  global.fetch = vi.fn() as unknown as typeof fetch;
+  fetchCalls = [];
+  queuedNonSettings = [];
+  global.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+    fetchCalls.push({ url, init });
+    if (typeof url === "string" && url.startsWith("/api/settings")) {
+      return { ok: true, json: async () => ({ categories: ["계약", "인사", "회계"] }) };
+    }
+    const next = queuedNonSettings.shift();
+    if (!next) return { ok: true, json: async () => ({}) };
+    return { ok: next.ok ?? true, json: async () => next.body };
+  }) as unknown as typeof fetch;
 });
 
 function queueResponses(responses: Array<{ ok?: boolean; body: unknown }>) {
-  const fn = global.fetch as unknown as FetchMock;
-  responses.forEach((r) => {
-    fn.mockResolvedValueOnce({
-      ok: r.ok ?? true,
-      json: async () => r.body,
-    });
-  });
+  queuedNonSettings.push(...responses);
 }
 
 describe("IngestPage", () => {
@@ -106,6 +111,73 @@ describe("IngestPage", () => {
     await waitFor(() => {
       expect(textarea.value).toBe("plain text body");
     });
+  });
+
+  it("loads categories from /api/settings and renders them as options", async () => {
+    render(<IngestPage />);
+    const select = (await screen.findByLabelText("카테고리")) as HTMLSelectElement;
+    await waitFor(() => {
+      expect(select.querySelectorAll("option")).toHaveLength(4); // placeholder + 3
+    });
+    expect(screen.getByRole("option", { name: "카테고리 없음" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "계약" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "인사" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "회계" })).toBeInTheDocument();
+  });
+
+  it("sends the selected category to /api/ingest", async () => {
+    queueResponses([
+      { body: { id: "src-cat" } },
+      { body: { results: [{ action: "created", page: { title: "t", slug: "t" } }] } },
+    ]);
+    render(<IngestPage />);
+    const select = (await screen.findByLabelText("카테고리")) as HTMLSelectElement;
+    await waitFor(() => expect(select.querySelectorAll("option").length).toBeGreaterThan(1));
+
+    fireEvent.change(screen.getByPlaceholderText("문서 제목"), { target: { value: "t" } });
+    fireEvent.change(screen.getByPlaceholderText(/문서 내용을 입력하세요/), { target: { value: "c" } });
+    fireEvent.change(select, { target: { value: "인사" } });
+    fireEvent.click(screen.getByRole("button", { name: /Ingest 실행/ }));
+
+    await screen.findByRole("link", { name: "t" });
+    const ingestCall = fetchCalls.find((c) => c.url === "/api/ingest");
+    expect(ingestCall).toBeDefined();
+    const payload = JSON.parse((ingestCall!.init?.body as string) ?? "{}");
+    expect(payload).toEqual({ source_id: "src-cat", category: "인사" });
+  });
+
+  it("sends category as null when nothing is selected", async () => {
+    queueResponses([
+      { body: { id: "src-nocat" } },
+      { body: { results: [{ action: "created", page: { title: "t", slug: "t" } }] } },
+    ]);
+    render(<IngestPage />);
+    fireEvent.change(screen.getByPlaceholderText("문서 제목"), { target: { value: "t" } });
+    fireEvent.change(screen.getByPlaceholderText(/문서 내용을 입력하세요/), { target: { value: "c" } });
+    fireEvent.click(screen.getByRole("button", { name: /Ingest 실행/ }));
+
+    await screen.findByRole("link", { name: "t" });
+    const ingestCall = fetchCalls.find((c) => c.url === "/api/ingest");
+    const payload = JSON.parse((ingestCall!.init?.body as string) ?? "{}");
+    expect(payload.category).toBeNull();
+  });
+
+  it("resets the category selection after a successful ingest", async () => {
+    queueResponses([
+      { body: { id: "src-reset" } },
+      { body: { results: [{ action: "created", page: { title: "t", slug: "t" } }] } },
+    ]);
+    render(<IngestPage />);
+    const select = (await screen.findByLabelText("카테고리")) as HTMLSelectElement;
+    await waitFor(() => expect(select.querySelectorAll("option").length).toBeGreaterThan(1));
+
+    fireEvent.change(screen.getByPlaceholderText("문서 제목"), { target: { value: "t" } });
+    fireEvent.change(screen.getByPlaceholderText(/문서 내용을 입력하세요/), { target: { value: "c" } });
+    fireEvent.change(select, { target: { value: "계약" } });
+    fireEvent.click(screen.getByRole("button", { name: /Ingest 실행/ }));
+
+    await screen.findByRole("link", { name: "t" });
+    await waitFor(() => expect(select.value).toBe(""));
   });
 
   it("shows an error message when ingest step fails", async () => {
