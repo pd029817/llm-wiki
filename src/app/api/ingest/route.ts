@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { toMarkdown, stripExtension } from "@/lib/markdown";
 
 function slugify(input: string): string {
   const base = input
@@ -8,81 +9,6 @@ function slugify(input: string): string {
     .replace(/[^\p{L}\p{N}]+/gu, "-")
     .replace(/^-+|-+$/g, "");
   return base || `doc-${Date.now()}`;
-}
-
-function formatLine(line: string): string {
-  const trimmed = line.trim();
-  if (!trimmed) return "";
-
-  // 제 N 편/장/절/조 → 헤딩
-  if (/^제\s*\d+\s*편(?:\s|[(])/.test(trimmed) && trimmed.length < 120) return `## ${trimmed}`;
-  if (/^제\s*\d+\s*장(?:\s|[(]|$)/.test(trimmed) && trimmed.length < 120) return `## ${trimmed}`;
-  if (/^제\s*\d+\s*절(?:\s|[(]|$)/.test(trimmed) && trimmed.length < 120) return `### ${trimmed}`;
-  if (/^제\s*\d+\s*조(?:\s|[(]|$)/.test(trimmed) && trimmed.length < 200) return `### ${trimmed}`;
-
-  // Chapter / Section
-  if (/^(chapter|section|part)\s+\d+/i.test(trimmed) && trimmed.length < 120) return `## ${trimmed}`;
-
-  // 1. / 1.1 / 1.1.1 로 시작하는 섹션형 짧은 제목
-  const numMatch = trimmed.match(/^(\d+(?:\.\d+){0,3})\.?\s+(.+)$/);
-  if (numMatch && trimmed.length < 120 && !/[.!?]$/.test(trimmed)) {
-    const depth = Math.min(numMatch[1].split(".").length + 1, 6);
-    return `${"#".repeat(depth)} ${trimmed}`;
-  }
-
-  // 불릿 목록 정규화
-  const bullet = trimmed.match(/^[·•●■◆▪▫◦\-–—*]\s*(.+)$/);
-  if (bullet) return `- ${bullet[1]}`;
-
-  // (1), 1), ①② 같은 번호 항목
-  const ordered = trimmed.match(/^(?:\(\s*(\d+)\s*\)|(\d+)\))\s*(.+)$/);
-  if (ordered) return `- ${trimmed}`;
-
-  return trimmed;
-}
-
-function toMarkdown(title: string, content: string): string {
-  const normalized = content
-    .replace(/\r\n/g, "\n")
-    .replace(/[ \t]+\n/g, "\n")
-    .replace(/[ \t]{2,}/g, " ")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-
-  const paragraphs = normalized
-    .split(/\n{2,}/)
-    .map((p) => p.trim())
-    .filter(Boolean);
-
-  const blocks: string[] = [];
-  for (const p of paragraphs) {
-    const lines = p.split("\n").map((l) => l.trim()).filter(Boolean);
-
-    // 단락 내부의 모든 줄이 리스트/헤딩 형태라면 줄 단위로 보존
-    const formatted = lines.map(formatLine);
-    const allStructural = formatted.every(
-      (l) => l.startsWith("- ") || /^#{1,6}\s/.test(l),
-    );
-
-    if (allStructural) {
-      blocks.push(formatted.join("\n"));
-      continue;
-    }
-
-    // 첫 줄이 헤딩이면 분리
-    const first = formatLine(lines[0]);
-    if (/^#{1,6}\s/.test(first)) {
-      const rest = lines.slice(1).join(" ").trim();
-      blocks.push(rest ? `${first}\n\n${rest}` : first);
-      continue;
-    }
-
-    // 일반 문단: 줄바꿈을 공백으로 합쳐 문장 흐름을 살림
-    blocks.push(lines.join(" "));
-  }
-
-  const body = blocks.join("\n\n");
-  return `# ${title}\n\n${body}\n`;
 }
 
 export async function POST(request: NextRequest) {
@@ -103,7 +29,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Source not found" }, { status: 404 });
     }
 
-    const rawTitle = (source.title || "문서").replace(/\.[a-z0-9]+$/i, "");
+    const rawTitle = stripExtension(source.title || "문서");
     const slug = slugify(source.title || rawTitle);
     const markdown = toMarkdown(rawTitle, source.content || "");
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { RawSource } from "@/lib/types";
+import { toMarkdown, stripExtension } from "@/lib/markdown";
 
 export default function SourcesPage() {
   const [sources, setSources] = useState<RawSource[]>([]);
@@ -114,9 +115,26 @@ export default function SourcesPage() {
                   </button>
                 </div>
                 {isOpen && (
-                  <pre className="mt-3 max-h-96 overflow-auto bg-gray-50 border rounded p-3 text-xs font-mono whitespace-pre-wrap text-gray-800">
-                    {s.content || "(내용 없음)"}
-                  </pre>
+                  <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <div className="text-xs font-semibold text-gray-600 mb-1">
+                        원본 업로드 내용
+                      </div>
+                      <pre className="max-h-96 overflow-auto bg-gray-50 border rounded p-3 text-xs font-mono whitespace-pre-wrap text-gray-800">
+                        {s.content || "(내용 없음)"}
+                      </pre>
+                    </div>
+                    <div>
+                      <div className="text-xs font-semibold text-gray-600 mb-1">
+                        마크다운 변환본
+                      </div>
+                      <pre className="max-h-96 overflow-auto bg-yellow-50 border rounded p-3 text-xs font-mono whitespace-pre-wrap text-gray-800">
+                        {s.content
+                          ? toMarkdown(stripExtension(s.title || "문서"), s.content)
+                          : "(내용 없음)"}
+                      </pre>
+                    </div>
+                  </div>
                 )}
               </div>
             );
