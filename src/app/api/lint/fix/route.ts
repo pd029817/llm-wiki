@@ -92,7 +92,15 @@ export async function POST(request: NextRequest) {
   if (!page) return NextResponse.json({ error: "페이지를 찾을 수 없습니다." }, { status: 404 });
 
   let proposed: string;
-  if (issue_type === "missing_link" || issue_type === "orphan") {
+  if (issue_type === "orphan") {
+    return NextResponse.json(
+      {
+        error:
+          "'orphan' 유형은 다른 페이지를 수정해야 하므로 자동 수정이 불가합니다. [편집] 버튼으로 상위/형제 페이지에 링크를 추가해 주세요.",
+      },
+      { status: 422 }
+    );
+  } else if (issue_type === "missing_link") {
     const links = extractLinks(suggestion);
     if (links.length === 0) {
       return NextResponse.json(

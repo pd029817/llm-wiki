@@ -67,7 +67,7 @@ describe("POST /api/lint/fix slug normalization", () => {
     const res = await POST(
       postRequest({
         page_slug: nfcSlug,
-        issue_type: "orphan",
+        issue_type: "missing_link",
         description: "d",
         suggestion: "거래처 목록을 만들어 [거래처 목록](/wiki/거래처-목록)을 참조하세요.",
       })
